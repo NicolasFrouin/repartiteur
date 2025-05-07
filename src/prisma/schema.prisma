@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum CaregiverTime {
+  DAY
+  NIGHT
+}
+
+enum CaregiverBigWeekType {
+  EVEN
+  ODD
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?  @unique
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User?   @relation("UserCreatedByUser", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById String?
+  updatedBy   User?   @relation("UserUpdatedByUser", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById String?
+
+  CreatedUsers       User[]       @relation(name: "UserCreatedByUser")
+  UpdatedUsers       User[]       @relation(name: "UserUpdatedByUser")
+  CreatedCaregivers  Caregiver[]  @relation(name: "CaregiverCreatedByUser")
+  UpdatedCaregivers  Caregiver[]  @relation(name: "CaregiverUpdatedByUser")
+  CreatedBranches    Branch[]     @relation(name: "BranchCreatedByUser")
+  UpdatedBranches    Branch[]     @relation(name: "BranchUpdatedByUser")
+  CreatedSectors     Sector[]     @relation(name: "SectorCreatedByUser")
+  UpdatedSectors     Sector[]     @relation(name: "SectorUpdatedByUser")
+  CreatedMissions    Mission[]    @relation(name: "MissionCreatedByUser")
+  UpdatedMissions    Mission[]    @relation(name: "MissionUpdatedByUser")
+  CreatedAssignments Assignment[] @relation(name: "AssignmentCreatedByUser")
+  UpdatedAssignments Assignment[] @relation(name: "AssignmentUpdatedByUser")
+}
+
+model Caregiver {
+  id          String               @id @default(cuid())
+  firstname   String
+  lastname    String
+  time        CaregiverTime
+  bigWeekType CaregiverBigWeekType
+  color       String?
+  active      Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "CaregiverUpdatedByUser")
+  updatedById String?
+
+  branch   Branch @relation(fields: [branchId], references: [id], name: "CaregiverInBranch")
+  branchId String
+
+  assignments Assignment[] @relation(name: "CaregiverAssignments")
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "BranchCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "BranchUpdatedByUser")
+  updatedById String?
+
+  caregivers Caregiver[] @relation(name: "CaregiverInBranch")
+  sectors    Sector[]
+}
+
+model Sector {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "SectorCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "SectorUpdatedByUser")
+  updatedById String?
+
+  branch   Branch @relation(fields: [branchId], references: [id])
+  branchId String
+
+  missions Mission[]
+}
+
+model Mission {
+  id        String   @id @default(cuid())
+  name      String
+  min       Int      @default(0)
+  max       Int      @default(1)
+  color     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "MissionCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "MissionUpdatedByUser")
+  updatedById String?
+
+  sector   Sector @relation(fields: [sectorId], references: [id])
+  sectorId String
+
+  assignments Assignment[] @relation(name: "MissionAssignments")
+}
+
+model Assignment {
+  date      DateTime
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverAssignments")
+  caregiverId String
+  mission     Mission   @relation(fields: [missionId], references: [id], name: "MissionAssignments")
+  missionId   String
+
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "AssignmentCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "AssignmentUpdatedByUser")
+  updatedById String?
+
+  @@id([date, caregiverId, missionId])
+}

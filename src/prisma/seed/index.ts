@@ -1,0 +1,24 @@
+import { PrismaClient } from '../generated/client';
+import { seedAssignments } from './assignments';
+import { seedBranches } from './branches';
+import { seedCaregivers } from './caregivers';
+import { seedUsers } from './users';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const users = await seedUsers(prisma);
+  const branches = await seedBranches(prisma, users);
+  await seedCaregivers(prisma, users, branches);
+  await seedAssignments(prisma);
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
