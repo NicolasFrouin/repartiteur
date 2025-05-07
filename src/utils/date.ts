@@ -15,11 +15,7 @@ export function getWeekDays(date: Date = new Date()) {
 }
 
 export function formatDate(date: Date) {
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  return date.toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 export function getWeekNumber(date: Date = new Date()) {
@@ -27,7 +23,9 @@ export function getWeekNumber(date: Date = new Date()) {
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d as unknown as number) - (yearStart as unknown as number)) / 86400000 + 1) / 7);
+  return Math.ceil(
+    (((d as unknown as number) - (yearStart as unknown as number)) / 86400000 + 1) / 7,
+  );
 }
 
 export function isBigWeek(day: Date = new Date()) {

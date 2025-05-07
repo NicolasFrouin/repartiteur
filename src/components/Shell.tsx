@@ -20,40 +20,19 @@ export default function Shell({ children }: Props) {
       styles={{ root: { '--header-height': `${HEADER_HEIGHT}px` } }}
     >
       <AppShell.Header>
-        <Group
-          h={'100%'}
-          px={'md'}
-        >
-          <Burger
-            opened={opened}
-            onClick={toggle}
-            hiddenFrom={'sm'}
-            size={'sm'}
-          />
-          <Group
-            justify={'space-between'}
-            align={'center'}
-            style={{ flex: 1 }}
-          >
+        <Group h={'100%'} px={'md'}>
+          <Burger opened={opened} onClick={toggle} hiddenFrom={'sm'} size={'sm'} />
+          <Group justify={'space-between'} align={'center'} style={{ flex: 1 }}>
             <Link href={'/'}>
               <div>Logo</div>
             </Link>
-            <Group
-              ml={'xl'}
-              gap={0}
-              visibleFrom={'sm'}
-            >
+            <Group ml={'xl'} gap={0} visibleFrom={'sm'}>
               <Nav />
             </Group>
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar
-        py={'md'}
-        px={4}
-        w={'100vw'}
-        hiddenFrom={'sm'}
-      >
+      <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'sm'}>
         <Nav />
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>
