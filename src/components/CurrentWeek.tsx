@@ -1,0 +1,164 @@
+import { getBranchesToMissions, getWeekAssignmentsData } from '@/actions/data';
+import { Branch, Mission, Sector } from '@/prisma/generated/client';
+import { MAIN_CONTENT_HEIGHT } from '@/utils/constants';
+import { formatDate, getWeekDays, getWeekNumber } from '@/utils/date';
+import {
+  Highlight,
+  ScrollArea,
+  Table,
+  TableCaption,
+  TableTbody,
+  TableTd,
+  TableTh,
+  TableThead,
+  TableTr,
+  Text,
+} from '@mantine/core';
+
+type FullSection = Sector & { missions: Mission[] };
+type FullBranch = Branch & { sectors: FullSection[] };
+
+export default async function CurrentWeek() {
+  // await new Promise((resolve) => setTimeout(resolve, 100e3)); // Simulate loading
+  const caregiverCache = new Map<string, string[]>();
+
+  const branchesData = await getBranchesToMissions();
+  const assignmentsData = await getWeekAssignmentsData();
+
+  const days = getWeekDays();
+
+  function getBranchSpan(b: FullBranch) {
+    return b.sectors.reduce((acc: number, s) => acc + getSectorSpan(s), 0);
+  }
+
+  function getSectorSpan(s: FullSection) {
+    return s.missions.reduce((acc: number, m) => acc + getMissionSpan(m), 0);
+  }
+
+  function getMissionSpan(m: Mission) {
+    return m.max ?? 1;
+  }
+
+  function getCaregiverAssigned(m: Mission, day: Date) {
+    const key = `${m.id}-${formatDate(day)}`;
+    const caregiversForKey = caregiverCache.get(key) ?? [];
+    const caregivers = assignmentsData
+      .filter((a) => !caregiversForKey.includes(a.caregiverId))
+      .filter(
+        (a) => a.missionId === m.id && formatDate(a.date).localeCompare(formatDate(day)) === 0,
+      );
+
+    const returnCaregiver = caregivers[0] ?? null;
+    if (returnCaregiver) {
+      caregiverCache.set(key, [...caregiversForKey, returnCaregiver.caregiverId]);
+      return returnCaregiver;
+    }
+    return null;
+  }
+
+  return (
+    <ScrollArea type='always' className={`${MAIN_CONTENT_HEIGHT} scrollbarY:z-10`} offsetScrollbars>
+      <Table
+        withColumnBorders
+        withTableBorder
+        stickyHeader
+        stickyHeaderOffset={-2}
+        captionSide='top'
+        mr={'xl'}
+      >
+        <TableCaption aria-labelledby={'caption'}>
+          <Text id={'caption'} fw={'bolder'}>
+            Répartition de la semaine {getWeekNumber()}
+          </Text>
+        </TableCaption>
+        <TableThead>
+          <TableTr>
+            <TableTh>Branche</TableTh>
+            <TableTh>Secteur</TableTh>
+            <TableTh>Mission</TableTh>
+            <TableTh style={{ backgroundColor: 'black' }} p={1} />
+            {days.map(formatDate).map((day) => (
+              <TableTh key={day} className='capitalize'>
+                <span>{day.replace(/ .*/, '')}</span>
+                <br />
+                <span>{day.replace(/.*? /, '')}</span>
+              </TableTh>
+            ))}
+          </TableTr>
+        </TableThead>
+        <TableTbody>
+          {branchesData.map((b) => {
+            return b.sectors.map((s, si) => {
+              return s.missions.map((m, mi) => {
+                const toPrint = [];
+                for (let i = 0; i < getMissionSpan(m); i++) {
+                  toPrint.push(
+                    <TableTr
+                      key={`${m.id}-${i}`}
+                      className='!border-y-black [&>td]:text-center'
+                      aria-label={`Branche ${b.name}, secteur ${s.name}, mission ${m.name}`}
+                    >
+                      {si === 0 && mi === 0 && i === 0 && (
+                        <TableTh
+                          rowSpan={getBranchSpan(b)}
+                          styles={{ th: { backgroundColor: b.color ?? undefined } }}
+                          color={b.color ?? undefined}
+                        >
+                          {b.name}
+                        </TableTh>
+                      )}
+                      {mi === 0 && i === 0 && (
+                        <TableTh
+                          rowSpan={getSectorSpan(s)}
+                          styles={{ th: { backgroundColor: s.color ?? undefined } }}
+                        >
+                          {s.name}
+                        </TableTh>
+                      )}
+                      {i === 0 && (
+                        <TableTh
+                          rowSpan={getMissionSpan(m)}
+                          className='sticky whitespace-pre-wrap'
+                          styles={{ th: { backgroundColor: m.color ?? undefined } }}
+                        >
+                          {m.name || ' '}
+                        </TableTh>
+                      )}
+                      <TableTd style={{ backgroundColor: 'black' }} p={1}></TableTd>
+                      {days.map((day, di) => {
+                        const assignment = getCaregiverAssigned(m, day);
+                        return assignment ? (
+                          <TableTd
+                            key={`${m.id}-${i}-${di}`}
+                            styles={{ td: { backgroundColor: assignment.color ?? undefined } }}
+                          >
+                            <Highlight
+                              color={assignment.caregiver.color || 'transparent'}
+                              highlight={[
+                                assignment.caregiver.firstname,
+                                assignment.caregiver.lastname,
+                              ].join(' ')}
+                            >
+                              {[assignment.caregiver.firstname, assignment.caregiver.lastname].join(
+                                ' ',
+                              )}
+                            </Highlight>
+                          </TableTd>
+                        ) : (
+                          <TableTd key={`${m.id}-${i}-${di}`} className='text-gray-300 select-none'>
+                            /
+                          </TableTd>
+                        );
+                      })}
+                    </TableTr>,
+                  );
+                }
+                return toPrint;
+              });
+            });
+          })}
+        </TableTbody>
+      </Table>
+    </ScrollArea>
+  );
+}

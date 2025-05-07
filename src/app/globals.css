@@ -1,4 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@custom-variant scrollbars (&.mantine-ScrollArea-root>[data-orientation]>.mantine-ScrollArea-thumb[data-state="visible"]);
+
+@custom-variant scrollbarX (&.mantine-ScrollArea-root>[data-orientation="horizontal"]>.mantine-ScrollArea-thumb[data-state="visible"]);
+
+@custom-variant scrollbarY (&.mantine-ScrollArea-root>[data-orientation="vertical"]>.mantine-ScrollArea-thumb[data-state="visible"]);
 
 :root {
   --background: #ffffff;
@@ -10,13 +18,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
