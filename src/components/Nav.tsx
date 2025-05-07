@@ -1,12 +1,12 @@
 import { Button } from '@mantine/core';
+import Link from 'next/link';
 
 export default function Nav() {
   return (
     <>
-      <Button variant={'subtle'}>Home</Button>
-      <Button variant={'subtle'}>About</Button>
-      <Button variant={'subtle'}>Contact</Button>
-      <Button variant={'subtle'}>Support</Button>
+      <Button component={Link} href={'/admin/soignants'} variant={'light'}>
+        Soignants
+      </Button>
     </>
   );
 }
