@@ -1,17 +1,28 @@
 'use client';
 
-import { AppShell, AspectRatio, Burger, Group } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import Nav from './Nav';
 import { HEADER_HEIGHT } from '@/utils/constants';
-import Link from 'next/link';
+import {
+  ActionIcon,
+  Affix,
+  AppShell,
+  AspectRatio,
+  Burger,
+  Group,
+  Transition,
+  VisuallyHidden,
+} from '@mantine/core';
+import { useDisclosure, useWindowScroll } from '@mantine/hooks';
 import Image from 'next/image';
+import Link from 'next/link';
+import { FaArrowUp } from 'react-icons/fa6';
+import Nav from './Nav';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props extends React.PropsWithChildren {}
 
 export default function Shell({ children }: Props) {
   const [opened, { toggle }] = useDisclosure();
+  const [scroll, scrollTo] = useWindowScroll();
 
   return (
     <AppShell
@@ -36,6 +47,7 @@ export default function Shell({ children }: Props) {
                   width={815}
                   height={161}
                   className='h-12'
+                  priority
                 />
               </AspectRatio>
             </Link>
@@ -49,7 +61,24 @@ export default function Shell({ children }: Props) {
       <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'sm'}>
         <Nav />
       </AppShell.Navbar>
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main className='flex flex-col'>
+        {children}
+        <Affix position={{ bottom: 20, right: 20 }}>
+          <Transition transition='slide-up' mounted={scroll.y > 0}>
+            {(transitionStyles) => (
+              <ActionIcon
+                style={transitionStyles}
+                onClick={() => scrollTo({ y: 0 })}
+                className={'!rounded-full'}
+                size={48}
+              >
+                <VisuallyHidden>Retour en haut</VisuallyHidden>
+                <FaArrowUp size={24} />
+              </ActionIcon>
+            )}
+          </Transition>
+        </Affix>
+      </AppShell.Main>
     </AppShell>
   );
 }
