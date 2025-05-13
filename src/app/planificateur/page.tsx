@@ -42,7 +42,9 @@ export default function Page() {
         ))}
       </Stepper>
       <Group justify={'center'} mt='xl'>
-        <Button onClick={prevStep}>Précédent</Button>
+        <Button onClick={prevStep} variant={'outline'} disabled={active === 0}>
+          Précédent
+        </Button>
         <Button onClick={nextStep}>Suivant</Button>
       </Group>
     </div>

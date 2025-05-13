@@ -39,7 +39,9 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   const tableBody: React.ReactNode[][] = caregivers.map((c) => {
     const branch = data.find((b) => b.id === c.branchId);
     return [
-      <Text key={`${c.id}-name`}>{[c.firstname, c.lastname].join(' ')}</Text>,
+      <Text key={`${c.id}-name`} ta={'center'}>
+        {[c.firstname, c.lastname].join(' ')}
+      </Text>,
       branch ? (
         <Chip.Group
           key={`${c.id}-sectors`}
@@ -49,7 +51,12 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
             setForbiddenSectors((prev) => ({ ...prev, [c.id]: value }));
           }}
         >
-          <Flex justify={'center'} align={'center'} gap={'xs'} className={'flex-col md:flex-row'}>
+          <Flex
+            justify={'center'}
+            align={'center'}
+            gap={'xs'}
+            className={'flex-col md:flex-row md:flex-wrap md:[td:has(&)]:max-w-xs'}
+          >
             {branch.sectors.map((s) => (
               <Chip
                 key={`${c.id}-${s.id}`}

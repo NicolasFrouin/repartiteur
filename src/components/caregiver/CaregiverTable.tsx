@@ -11,8 +11,10 @@ import {
   LoadingOverlay,
   Pagination,
   Table,
+  Text,
   Tooltip,
 } from '@mantine/core';
+import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
@@ -32,14 +34,14 @@ export default function CaregiverTable() {
   const tableHeaders: React.ReactNode[] = ['Nom', 'État', 'Branche', 'Couleur', 'Actions'];
   const tableBody = data.map((c) => {
     return [
-      <span key={c.id}>{[c.firstname, c.lastname].join(' ')}</span>,
-      c.active ? 'Actif' : 'Inactif',
-      <Link key={c.id} href={`/admin/branches/${c.branchId}`}>
+      <Text key={`${c.id}-name`}>{[c.firstname, c.lastname].join(' ')}</Text>,
+      <Text key={`${c.id}-status`}>{c.active ? 'Actif' : 'Inactif'}</Text>,
+      <Link key={`${c.id}-branch`} href={`/admin/branches/${c.branchId}`}>
         {c.branch.name}
       </Link>,
-      <Tooltip label={c.color} key={c.id + 'color'} withArrow disabled={!Boolean(c.color)}>
+      <Tooltip label={c.color} key={`${c.id}-color`} withArrow disabled={!Boolean(c.color)}>
         <Badge
-          key={c.id + 'badge'}
+          key={`${c.id}-badge`}
           variant='filled'
           w={24}
           h={24}
@@ -47,7 +49,7 @@ export default function CaregiverTable() {
         />
       </Tooltip>,
       <ActionIcon
-        key={c.id}
+        key={`${c.id}-action`}
         variant='subtle'
         color='blue'
         href={`/admin/soignants/${c.id}`}
@@ -64,10 +66,25 @@ export default function CaregiverTable() {
     async function fetchData() {
       setLoading(true);
       const caregiverTotal = await fetchCaregiver('count');
+
       const caregivers = await fetchCaregiver('findMany', [
         {
           where: { active: true },
-          include: { branch: true, _count: { select: { assignments: true } } },
+          include: {
+            branch: true,
+            _count: {
+              select: {
+                assignments: {
+                  where: {
+                    date: {
+                      gte: dayjs().startOf('week').toDate(),
+                      lte: dayjs().endOf('week').toDate(),
+                    },
+                  },
+                },
+              },
+            },
+          },
           take: pageSize,
           skip: (page - 1) * pageSize,
           orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }],

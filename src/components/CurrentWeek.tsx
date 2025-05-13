@@ -1,5 +1,5 @@
 import { getBranchesToMissions, getWeekAssignmentsData } from '@/actions/data';
-import { Branch, Mission, Sector } from '@/prisma/generated/client';
+import { Assignment, Branch, Mission, Sector } from '@/prisma/generated/client';
 import { MAIN_CONTENT_HEIGHT } from '@/utils/constants';
 import { formatDate, getWeekDays, getWeekNumber } from '@/utils/date';
 import {
@@ -15,11 +15,10 @@ import {
   Text,
 } from '@mantine/core';
 
-type FullSection = Sector & { missions: Mission[] };
-type FullBranch = Branch & { sectors: FullSection[] };
+type FullSector = Sector & { missions: Mission[] };
+type FullBranch = Branch & { sectors: FullSector[] };
 
 export default async function CurrentWeek() {
-  // await new Promise((resolve) => setTimeout(resolve, 100e3)); // Simulate loading
   const caregiverCache = new Map<string, string[]>();
 
   const branchesData = await getBranchesToMissions();
@@ -28,11 +27,11 @@ export default async function CurrentWeek() {
   const days = getWeekDays();
 
   function getBranchSpan(b: FullBranch) {
-    return b.sectors.reduce((acc: number, s) => acc + getSectorSpan(s), 0);
+    return b.sectors.reduce((acc: number, s: FullSector) => acc + getSectorSpan(s), 0);
   }
 
-  function getSectorSpan(s: FullSection) {
-    return s.missions.reduce((acc: number, m) => acc + getMissionSpan(m), 0);
+  function getSectorSpan(s: FullSector) {
+    return s.missions.reduce((acc: number, m: Mission) => acc + getMissionSpan(m), 0);
   }
 
   function getMissionSpan(m: Mission) {
@@ -43,9 +42,10 @@ export default async function CurrentWeek() {
     const key = `${m.id}-${formatDate(day)}`;
     const caregiversForKey = caregiverCache.get(key) ?? [];
     const caregivers = assignmentsData
-      .filter((a) => !caregiversForKey.includes(a.caregiverId))
+      .filter((a: Assignment) => !caregiversForKey.includes(a.caregiverId))
       .filter(
-        (a) => a.missionId === m.id && formatDate(a.date).localeCompare(formatDate(day)) === 0,
+        (a: Assignment) =>
+          a.missionId === m.id && formatDate(a.date).localeCompare(formatDate(day)) === 0,
       );
 
     const returnCaregiver = caregivers[0] ?? null;
@@ -88,8 +88,8 @@ export default async function CurrentWeek() {
         </TableThead>
         <TableTbody>
           {branchesData.map((b) => {
-            return b.sectors.map((s, si) => {
-              return s.missions.map((m, mi) => {
+            return b.sectors.map((s: FullSector, si: number) => {
+              return s.missions.map((m: Mission, mi: number) => {
                 const toPrint = [];
                 for (let i = 0; i < getMissionSpan(m); i++) {
                   toPrint.push(
@@ -125,7 +125,7 @@ export default async function CurrentWeek() {
                         </TableTh>
                       )}
                       <TableTd style={{ backgroundColor: 'black' }} p={1}></TableTd>
-                      {days.map((day, di) => {
+                      {days.map((day: Date, di: number) => {
                         const assignment = getCaregiverAssigned(m, day);
                         return assignment ? (
                           <TableTd

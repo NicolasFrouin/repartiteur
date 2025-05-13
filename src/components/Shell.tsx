@@ -17,10 +17,7 @@ import Link from 'next/link';
 import { FaArrowUp } from 'react-icons/fa6';
 import Nav from './Nav';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface Props extends React.PropsWithChildren {}
-
-export default function Shell({ children }: Props) {
+export default function Shell({ children }: React.PropsWithChildren) {
   const [opened, { toggle }] = useDisclosure();
   const [scroll, scrollTo] = useWindowScroll();
 
@@ -37,7 +34,7 @@ export default function Shell({ children }: Props) {
           <Group
             align={'center'}
             style={{ flex: 1 }}
-            className={'!justify-center sm:!justify-between'}
+            className={'!justify-center md:!justify-between'}
           >
             <Link href={'/'} className={'flex items-center'}>
               <AspectRatio ratio={815 / 161}>
@@ -55,7 +52,7 @@ export default function Shell({ children }: Props) {
               <Nav />
             </Group>
           </Group>
-          <div className='w-7 sm:hidden' />
+          <div className='w-7 md:hidden' />
         </Group>
       </AppShell.Header>
       <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'sm'}>
