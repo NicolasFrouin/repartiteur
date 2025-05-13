@@ -2,14 +2,12 @@ import prisma from '@/prisma';
 import { notFound } from 'next/navigation';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function Page({ params: { id } }: Props) {
-  const caregiver = await prisma.caregiver.findUnique({
-    where: { id: id },
-    include: { branch: true },
-  });
+export default async function Page({ params }: Props) {
+  const { id } = await params;
+  const caregiver = await prisma.caregiver.findUnique({ where: { id }, include: { branch: true } });
 
   if (!caregiver) {
     return notFound();
@@ -17,7 +15,7 @@ export default async function Page({ params: { id } }: Props) {
 
   return (
     <div>
-      <h1>{caregiver?.firstname}</h1>
+      <h1>{[caregiver.firstname, caregiver.lastname].join(' ')}</h1>
     </div>
   );
 }
