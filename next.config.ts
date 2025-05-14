@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       'src/utils',
     ],
   },
-  typescript: { ignoreBuildErrors: process.env.IGNORE_TS_BUILD_ERRORS === 'true' },
+  experimental: { serverActions: { allowedOrigins: ['*'] } },
 };
 
 export default nextConfig;
