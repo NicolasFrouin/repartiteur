@@ -1,4 +1,4 @@
-import { Branch, Mission, Sector } from '@/prisma/generated/client';
+import { Branch, Mission, Sector } from '@/generated/client';
 
 type NotRequired = 'id' | 'color' | 'active' | 'createdAt' | 'updatedAt' | `${string}Id`;
 

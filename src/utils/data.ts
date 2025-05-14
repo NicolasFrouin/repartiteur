@@ -1,4 +1,4 @@
-import { Branch, Caregiver, Mission, Sector } from '@/prisma/generated/client';
+import { Branch, Caregiver, Mission, Sector } from '@/generated/client';
 import { NonRequired } from '@/types/utils';
 
 type BranchWithSectors = NonRequired<Branch> & {

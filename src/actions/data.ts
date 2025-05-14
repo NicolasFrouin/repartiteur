@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/prisma';
+import prisma from '@/lib/prisma';
 import { BSM } from '@/types/utils';
 import { getDate, getWeekDays } from '@/utils/date';
 

@@ -2,15 +2,13 @@
 
 import { fetchCaregiver } from '@/actions/common';
 import { getBranchesToMissions } from '@/actions/data';
-import { Branch, Caregiver, Sector } from '@/prisma/generated/client';
+import { Branch, Caregiver, Sector } from '@/generated/client';
 import { BSM } from '@/types/utils';
 import { Box, Chip, Flex, Group, LoadingOverlay, Pagination, Table, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-interface CaregiversAndBranch extends Caregiver {
-  branch: Branch;
-}
+type CaregiversAndBranch = Caregiver & { branch: Branch };
 
 interface Props {
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>;

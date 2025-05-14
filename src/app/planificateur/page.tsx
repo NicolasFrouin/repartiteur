@@ -1,7 +1,7 @@
 'use client';
 
 import CaregiverOptions from '@/components/planner/CaregiverOptions';
-import { Caregiver, Sector } from '@/prisma/generated/client';
+import { Caregiver, Sector } from '@/generated/client';
 import { Button, Group, Stepper } from '@mantine/core';
 import { useState } from 'react';
 

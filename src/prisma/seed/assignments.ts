@@ -1,6 +1,6 @@
 import { getDate, getWeekDays, getWeekNumber, isBigWeek } from '@/utils/date';
 import { rand } from '@/utils/number';
-import { CaregiverBigWeekType, PrismaClient } from '../generated/client';
+import { CaregiverBigWeekType, PrismaClient } from '@/generated/client';
 import { randomColor } from '@/utils/color';
 
 export async function seedAssignments(prisma: PrismaClient = new PrismaClient()) {
@@ -21,14 +21,15 @@ export async function seedAssignments(prisma: PrismaClient = new PrismaClient())
   });
   // const missions = await prisma.mission.findMany({ where: { active: true } });
 
-  const bigWeekType = getWeekNumber(refDay) % 2 === 0 ? CaregiverBigWeekType.EVEN : CaregiverBigWeekType.ODD;
+  const bigWeekType =
+    getWeekNumber(refDay) % 2 === 0 ? CaregiverBigWeekType.EVEN : CaregiverBigWeekType.ODD;
   for (const day of days) {
     for (const branch of branches) {
       console.group(`Seeding assignments for ${day.toLocaleDateString('fr-FR')}`);
       const bigWeek = isBigWeek(day);
 
       const workingCaregivers = branch.caregivers.filter((c) =>
-        bigWeek ? c.bigWeekType === bigWeekType : c.bigWeekType !== bigWeekType
+        bigWeek ? c.bigWeekType === bigWeekType : c.bigWeekType !== bigWeekType,
       );
 
       console.log('Available caregivers:', workingCaregivers.length);
@@ -40,10 +41,12 @@ export async function seedAssignments(prisma: PrismaClient = new PrismaClient())
 
         const assignedCaregivers = caregiversToAssign.splice(
           rand(0, caregiversToAssign.length - mission.min),
-          mission.min
+          mission.min,
         );
         for (const caregiver of assignedCaregivers) {
-          console.log(`✅ Assigned ${[caregiver.firstname, caregiver.lastname].join(' ')} to ${mission.name}`);
+          console.log(
+            `✅ Assigned ${[caregiver.firstname, caregiver.lastname].join(' ')} to ${mission.name}`,
+          );
           await prisma.assignment.create({
             data: {
               caregiverId: caregiver.id,

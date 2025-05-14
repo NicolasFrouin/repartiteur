@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchCaregiver } from '@/actions/common';
-import { Caregiver } from '@/prisma/generated/client';
+import { Caregiver } from '@/generated/client';
 import {
   ActionIcon,
   Badge,
@@ -19,9 +19,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
 
-interface Data extends Caregiver {
-  branch: { name: string };
-}
+type Data = Caregiver & { branch: { name: string } };
 
 export default function CaregiverTable() {
   const [loading, setLoading] = useState(true);

@@ -1,5 +1,5 @@
 import { branches } from '@/utils/data';
-import { Branch, PrismaClient, User } from '../generated/client';
+import { Branch, PrismaClient, User } from '@/generated/client';
 import { randomColor } from '@/utils/color';
 
 export async function seedBranches(prisma: PrismaClient, users: User[]): Promise<Branch[]> {
@@ -19,7 +19,9 @@ export async function seedBranches(prisma: PrismaClient, users: User[]): Promise
     }
 
     const { sectors, ...branchData } = branch;
-    const createdBranches = await prisma.branch.createManyAndReturn({ data: { ...branchData, ...userData } });
+    const createdBranches = await prisma.branch.createManyAndReturn({
+      data: { ...branchData, ...userData },
+    });
     console.group(`Branch ${branch.name} created !`);
 
     for (const createdBranch of createdBranches) {

@@ -1,5 +1,5 @@
 import { getBranchesToMissions, getWeekAssignmentsData } from '@/actions/data';
-import { Assignment, Branch, Mission, Sector } from '@/prisma/generated/client';
+import { Assignment, Branch, Mission, Sector } from '@/generated/client';
 import { MAIN_CONTENT_HEIGHT } from '@/utils/constants';
 import { formatDate, getWeekDays, getWeekNumber } from '@/utils/date';
 import {

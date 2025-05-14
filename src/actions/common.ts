@@ -3,7 +3,7 @@
 
 'use server';
 
-import prisma from '@/prisma';
+import prisma from '@/lib/prisma';
 
 export async function fetchUser<T extends typeof prisma.user>(
   functionName: keyof T,

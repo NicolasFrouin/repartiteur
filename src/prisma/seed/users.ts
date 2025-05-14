@@ -1,13 +1,9 @@
 import { hashSync } from 'bcrypt';
-import { PrismaClient, User } from '../generated/client';
+import { PrismaClient, User } from '@/generated/client';
 import { NonRequired } from '@/types/utils';
 
 export const users: NonRequired<User>[] = [
-  {
-    email: 'admin@example.com',
-    name: 'admin',
-    password: hashSync('pass', 10),
-  },
+  { email: 'admin@example.com', name: 'admin', password: hashSync('pass', 10) },
 ];
 
 export async function seedUsers(prisma: PrismaClient): Promise<User[]> {
