@@ -103,7 +103,7 @@ export default function CaregiverDetails({ caregiver }: Props) {
           where: { id: caregiver.id },
         },
       ],
-      `/admin/soignants/${caregiver.id}`,
+      '/',
     ).catch(() => null);
     if (!updateRes) {
       notifications.show({
