@@ -27,8 +27,11 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   const [data, setData] = useState<BSM[]>([]);
 
   const tableHeaders: React.ReactNode[] = [
-    <Text key={'h-sectors'} ta={'center'} fw={'bold'}>
+    <Text key={'h-name'} ta={'center'} fw={'bold'}>
       Nom
+    </Text>,
+    <Text key={'h-branch'} ta={'center'} fw={'bold'}>
+      Branche
     </Text>,
     <Text key={'h-sectors'} ta={'center'} fw={'bold'}>
       Secteurs à ne pas attribuer
@@ -39,6 +42,9 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
     return [
       <Text key={`${c.id}-name`} ta={'center'}>
         {[c.firstname, c.lastname].join(' ')}
+      </Text>,
+      <Text key={`${c.id}-branch`} ta={'center'}>
+        {branch ? branch.name : 'Aucune branche'}
       </Text>,
       branch ? (
         <Chip.Group
