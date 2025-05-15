@@ -1,4 +1,4 @@
-import { Branch, Mission, Sector } from '@/generated/client';
+import { Assignment, Branch, Caregiver, Mission, Sector } from '@/generated/client';
 
 type NotRequired = 'id' | 'color' | 'active' | 'createdAt' | 'updatedAt' | `${string}Id`;
 
@@ -9,3 +9,5 @@ export type NonRequired<T, O extends keyof T = never> = {
 export type BranchesSectorsMissions = Branch & { sectors: (Sector & { missions: Mission[] })[] };
 /** @alias {@link BranchesSectorsMissions} */
 export type BSM = BranchesSectorsMissions;
+
+export type FullAssignment = Assignment & { caregiver: Caregiver; mission: Mission };
