@@ -1,3 +1,4 @@
+import CaregiverDetails from '@/components/caregiver/CaregiverDetails';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
@@ -14,8 +15,8 @@ export default async function Page({ params }: Props) {
   }
 
   return (
-    <div>
-      <h1>{[caregiver.firstname, caregiver.lastname].join(' ')}</h1>
+    <div className='px-8 md:px-[20%]'>
+      <CaregiverDetails caregiver={caregiver} />
     </div>
   );
 }

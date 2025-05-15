@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { BSM } from '@/types/utils';
+import { BSM, FullAssignment } from '@/types/utils';
 import { getDate, getWeekDays } from '@/utils/date';
 
 export async function getBranchesToMissions(): Promise<BSM[]> {
@@ -13,7 +13,7 @@ export async function getBranchesToMissions(): Promise<BSM[]> {
   });
 }
 
-export async function getWeekAssignmentsData(date: Date = new Date()) {
+export async function getWeekAssignmentsData(date: Date = new Date()): Promise<FullAssignment[]> {
   const days = getWeekDays(date);
 
   return await prisma.assignment.findMany({
