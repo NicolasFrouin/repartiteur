@@ -1,4 +1,4 @@
-import BranchDetails from '@/components/bsm/branch/BranchDetails';
+import SectorDetails from '@/components/bsm/sector/SectorDetails';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
@@ -8,15 +8,18 @@ interface Props {
 
 export default async function Page({ params }: Props) {
   const { id } = await params;
-  const branch = await prisma.branch.findUnique({ where: { id }, include: { sectors: true } });
+  const sector = await prisma.sector.findUnique({
+    where: { id },
+    include: { missions: true, branch: true },
+  });
 
-  if (!branch) {
+  if (!sector) {
     return notFound();
   }
 
   return (
     <div className='px-8 md:px-[20%]'>
-      <BranchDetails branch={branch} />
+      <SectorDetails sector={sector} />
     </div>
   );
 }

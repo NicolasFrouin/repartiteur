@@ -1,9 +1,7 @@
 'use client';
 
-import { fetchBranch, fetchCaregiver } from '@/actions/common';
-import { Branch, Caregiver, CaregiverBigWeekType } from '@/generated/client';
-import { getWeekDay } from '@/lib/utils';
-import { BIG_WEEK_DAYS, getWeekNumber } from '@/utils/date';
+import { fetchBranch, fetchSector } from '@/actions/common';
+import { Branch, Sector } from '@/generated/client';
 import {
   Box,
   Button,
@@ -11,11 +9,9 @@ import {
   Group,
   Input,
   LoadingOverlay,
-  SegmentedControl,
   Select,
   Stack,
   Switch,
-  Text,
   TextInput,
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
@@ -25,30 +21,21 @@ import { useEffect, useState } from 'react';
 import { z } from 'zod';
 
 interface Props {
-  caregiver: Caregiver;
+  sector: Sector;
 }
 
-export default function CaregiverDetails({ caregiver }: Props) {
+export default function SectorDetails({ sector }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
-  const [caregiverData, setCaregiverData] = useState<Caregiver>(caregiver);
+  const [sectorData, setSectorData] = useState<Sector>(sector);
   const [branchesData, setBranchesData] = useState<{ value: string; label: string }[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
 
-  const isEvenWeek = getWeekNumber() % 2 === 0;
-
-  const schema = z.object({
-    firstname: z.string(),
-    lastname: z.string(),
-    bigWeekType: z.enum([CaregiverBigWeekType.EVEN, CaregiverBigWeekType.ODD]),
-    color: z.string(),
-    branchId: z.string(),
-    active: z.boolean(),
-  });
+  const schema = z.object({});
 
   const form = useForm({
+    initialValues: sectorData,
     mode: 'controlled',
-    initialValues: caregiverData,
     validate: zodResolver(schema),
   });
 
@@ -86,24 +73,21 @@ export default function CaregiverDetails({ caregiver }: Props) {
     setReadonly(true);
     form.reset();
     form.resetDirty();
-    handleBranchSearch(caregiver.branchId);
   }
 
-  async function handleSubmit(values: ReturnType<(typeof form)['getValues']>) {
+  async function handleSubmit(values: typeof form.values) {
     setLoading(true);
-    const updateRes: Caregiver | null = await fetchCaregiver(
+    const updateRes: Sector | null = await fetchSector(
       'update',
       [
         {
+          where: { id: sector.id },
           data: {
-            firstname: values.firstname,
-            lastname: values.lastname,
-            bigWeekType: values.bigWeekType,
+            name: values.name,
             color: values.color,
-            branch: { connect: { id: values.branchId } },
             active: values.active,
+            branch: { connect: { id: values.branchId } },
           },
-          where: { id: caregiver.id },
         },
       ],
       '/',
@@ -112,19 +96,19 @@ export default function CaregiverDetails({ caregiver }: Props) {
     if (!updateRes) {
       notifications.show({
         title: 'Erreur',
-        message: 'Erreur lors de la modification du soignant',
+        message: 'Erreur lors de la modification du secteur',
         color: 'red',
         autoClose: 4e3,
       });
       return;
     }
     setReadonly(true);
-    setCaregiverData(updateRes);
+    setSectorData(updateRes);
     form.setValues(updateRes);
     form.resetDirty();
     notifications.show({
-      title: 'Modification de soignant',
-      message: 'Soignant modifié avec succès',
+      title: 'Modification du secteur',
+      message: 'Secteur modifié avec succès',
       color: 'green',
       autoClose: 4e3,
     });
@@ -140,47 +124,20 @@ export default function CaregiverDetails({ caregiver }: Props) {
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
-        <TextInput
-          label='Prénom'
-          placeholder='Michel·le'
-          key={form.key('firstname')}
-          {...defaultProps('firstname')}
-        />
-        <TextInput
-          label='Nom de famille'
-          placeholder='Dupont'
-          key={form.key('lastname')}
-          {...defaultProps('lastname')}
-        />
-        <Input.Wrapper
-          label='Grosse semaine de travail'
-          className='flex flex-col'
-          description={
-            <Box size='sm' component='span'>
-              Travail les {BIG_WEEK_DAYS.map(getWeekDay).join(', ')}
-              <br />
-              <Text size='xs' fs={'italic'} component='span'>
-                Nous sommes actuellement en semaine <b>{isEvenWeek ? 'paire' : 'impaire'}</b>
-              </Text>
-            </Box>
-          }
-          {...defaultProps('bigWeekType')}
-        >
-          <SegmentedControl
-            key={form.key('bigWeekType')}
-            {...defaultProps('bigWeekType', 'styles.required')}
-            data={[
-              { label: 'Semaine paire', value: CaregiverBigWeekType.EVEN },
-              { label: 'Semaine impaire', value: CaregiverBigWeekType.ODD },
-            ]}
-          />
-        </Input.Wrapper>
+        <TextInput label='Nom' key={form.key('name')} {...defaultProps('name')} />
         <ColorInput
           label='Couleur'
           placeholder='Sélectionner une couleur'
           key={form.key('color')}
           {...defaultProps('color')}
         />
+        <Input.Wrapper label='Actif' {...defaultProps('active')}>
+          <Switch
+            key={form.key('active')}
+            {...defaultProps('active', 'styles.required')}
+            checked={form.getInputProps('active').value}
+          />
+        </Input.Wrapper>
         <Box pos={'relative'}>
           <LoadingOverlay
             visible={branchesLoading}
@@ -198,28 +155,21 @@ export default function CaregiverDetails({ caregiver }: Props) {
             onSearchChange={branchSearchChange}
           />
         </Box>
-        <Input.Wrapper label='Actif' {...defaultProps('active')}>
-          <Switch
-            key={form.key('active')}
-            {...defaultProps('active', 'styles.required')}
-            checked={form.getInputProps('active').value}
-          />
-        </Input.Wrapper>
+        <Group justify='center' mt='xl'>
+          {readOnly ? (
+            <Button onClick={() => setReadonly(false)}>Modifier</Button>
+          ) : (
+            <>
+              <Button onClick={handleCancel} variant='subtle'>
+                Annuler
+              </Button>
+              <Button type='submit' loading={loading}>
+                Enregistrer
+              </Button>
+            </>
+          )}
+        </Group>
       </Stack>
-      <Group justify='center' mt='xl'>
-        {readOnly ? (
-          <Button onClick={() => setReadonly(false)}>Modifier</Button>
-        ) : (
-          <>
-            <Button onClick={handleCancel} variant='subtle'>
-              Annuler
-            </Button>
-            <Button type='submit' loading={loading}>
-              Enregistrer
-            </Button>
-          </>
-        )}
-      </Group>
     </form>
   );
 }

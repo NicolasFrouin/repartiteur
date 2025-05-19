@@ -4,7 +4,6 @@ import { fetchCaregiver } from '@/actions/common';
 import { Caregiver } from '@/generated/client';
 import {
   ActionIcon,
-  Badge,
   Box,
   Flex,
   Group,
@@ -12,12 +11,12 @@ import {
   Pagination,
   Table,
   Text,
-  Tooltip,
 } from '@mantine/core';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
+import ColorCell from '../common/table/ColorCell';
 
 type Data = Caregiver & { branch: { name: string } };
 
@@ -37,15 +36,7 @@ export default function CaregiverTable() {
       <Link key={`${c.id}-branch`} href={`/admin/branches/${c.branchId}`}>
         {c.branch.name}
       </Link>,
-      <Tooltip label={c.color} key={`${c.id}-color`} withArrow disabled={!Boolean(c.color)}>
-        <Badge
-          key={`${c.id}-badge`}
-          variant='filled'
-          w={24}
-          h={24}
-          color={c.color || 'transparent'}
-        />
-      </Tooltip>,
+      <ColorCell key={`${c.id}-color`} color={c.color} />,
       <ActionIcon
         key={`${c.id}-action`}
         variant='subtle'
@@ -67,7 +58,6 @@ export default function CaregiverTable() {
 
       const caregivers = await fetchCaregiver('findMany', [
         {
-          where: { active: true },
           include: {
             branch: true,
             _count: {
@@ -106,7 +96,7 @@ export default function CaregiverTable() {
             zIndex={1000}
             overlayProps={{ radius: 'sm', blur: 2 }}
           />
-          <Table data={tableData}></Table>
+          <Table data={tableData} />
         </Box>
         <Group justify={'center'} mt={'md'}>
           <Pagination

@@ -18,7 +18,7 @@ import { FaArrowUp } from 'react-icons/fa6';
 import Nav from './Nav';
 
 export default function Shell({ children }: React.PropsWithChildren) {
-  const [opened, { toggle }] = useDisclosure();
+  const [opened, { toggle, close }] = useDisclosure();
   const [scroll, scrollTo] = useWindowScroll();
 
   return (
@@ -49,14 +49,14 @@ export default function Shell({ children }: React.PropsWithChildren) {
               </AspectRatio>
             </Link>
             <Group ml={'xl'} gap={0} visibleFrom={'sm'}>
-              <Nav />
+              <Nav close={close} />
             </Group>
           </Group>
           <div className='w-7 md:hidden' />
         </Group>
       </AppShell.Header>
       <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'sm'}>
-        <Nav />
+        <Nav close={close} />
       </AppShell.Navbar>
       <AppShell.Main className='flex flex-col'>
         {children}

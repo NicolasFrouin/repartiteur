@@ -11,3 +11,6 @@ export type BranchesSectorsMissions = Branch & { sectors: (Sector & { missions: 
 export type BSM = BranchesSectorsMissions;
 
 export type FullAssignment = Assignment & { caregiver: Caregiver; mission: Mission };
+export type FullBranch = Branch & { sectors: Sector[] };
+export type FullSector = Sector & { missions: Mission[]; branch: Branch };
+export type FullMission = Mission & { sector: Omit<FullSector, 'missions'> };

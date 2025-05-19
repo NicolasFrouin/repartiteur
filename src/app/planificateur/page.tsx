@@ -1,5 +1,6 @@
 'use client';
 
+import CalendarTouchUp from '@/components/planner/CalendarTouchUp';
 import CaregiverOptions from '@/components/planner/CaregiverOptions';
 import { Caregiver, Sector } from '@/generated/client';
 import { Button, Group, Stepper } from '@mantine/core';
@@ -26,6 +27,10 @@ export default function Page() {
           setForbiddenSectors={setForbiddenSectors}
         />
       ),
+    },
+    {
+      label: 'Prévisualisation / Modifications',
+      component: <CalendarTouchUp forbiddenSectors={forbiddenSectors} />,
     },
   ];
 
