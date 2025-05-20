@@ -27,6 +27,7 @@ model User {
   slug      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
   createdBy   User?   @relation("UserCreatedByUser", fields: [createdById], references: [id], onDelete: SetNull)
   createdById String?
@@ -58,6 +59,7 @@ model Caregiver {
   active      Boolean              @default(true)
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
+  archived    Boolean              @default(false)
 
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverCreatedByUser")
   createdById String?
@@ -78,6 +80,7 @@ model Branch {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "BranchCreatedByUser")
   createdById String?
@@ -96,6 +99,7 @@ model Sector {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "SectorCreatedByUser")
   createdById String?
@@ -118,6 +122,7 @@ model Mission {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "MissionCreatedByUser")
   createdById String?
@@ -135,6 +140,7 @@ model Assignment {
   color     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
   caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverAssignments")
   caregiverId String
