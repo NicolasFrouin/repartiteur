@@ -1,9 +1,10 @@
 import MissionTable from '@/components/bsm/mission/MissionTable';
+import { Box } from '@mantine/core';
 
 export default function Page() {
   return (
-    <div className='px-4'>
+    <Box>
       <MissionTable />
-    </div>
+    </Box>
   );
 }

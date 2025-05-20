@@ -1,9 +1,10 @@
 import CaregiverTable from '@/components/caregiver/CaregiverTable';
+import { Box } from '@mantine/core';
 
 export default function Page() {
   return (
-    <div className='px-4'>
+    <Box>
       <CaregiverTable />
-    </div>
+    </Box>
   );
 }

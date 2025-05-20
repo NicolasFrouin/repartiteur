@@ -1,9 +1,10 @@
 import SectorTable from '@/components/bsm/sector/SectorTable';
+import { Box } from '@mantine/core';
 
 export default function Page() {
   return (
-    <div className='px-4'>
+    <Box>
       <SectorTable />
-    </div>
+    </Box>
   );
 }

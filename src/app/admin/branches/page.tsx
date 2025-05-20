@@ -1,9 +1,10 @@
 import BranchTable from '@/components/bsm/branch/BranchTable';
+import { Box } from '@mantine/core';
 
 export default function Page() {
   return (
-    <div className='px-4'>
+    <Box>
       <BranchTable />
-    </div>
+    </Box>
   );
 }
