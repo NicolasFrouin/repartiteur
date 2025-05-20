@@ -1,6 +1,7 @@
 import Shell from '@/components/Shell';
 import { ColorSchemeScript, createTheme, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+import { ModalsProvider } from '@mantine/modals';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import type { Metadata } from 'next';
@@ -35,8 +36,10 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <MantineProvider theme={theme}>
-          <Notifications />
-          <Shell>{children}</Shell>
+          <ModalsProvider>
+            <Notifications />
+            <Shell>{children}</Shell>
+          </ModalsProvider>
         </MantineProvider>
       </body>
     </html>
