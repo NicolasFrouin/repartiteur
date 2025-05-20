@@ -1,3 +1,5 @@
+import dayjs from '../dayjs';
+
 /**
  * Days of the week considered as "big week".
  *
@@ -78,4 +80,8 @@ export function isBigWeek(day: Date = new Date()) {
  */
 export function getDate(date: Date = new Date()) {
   return new Date(date.setHours(0, 0, 0, 0));
+}
+
+export function getWeekDay(day: number): string {
+  return dayjs().weekday(day).format('dddd');
 }

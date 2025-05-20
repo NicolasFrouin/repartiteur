@@ -1,37 +1,59 @@
 'use client';
 
 import { fetchBranch, fetchSector } from '@/actions/common';
-import { Branch, Sector } from '@/generated/client';
+import { FullSector } from '@/types/utils';
 import {
-  Box,
   Button,
   ColorInput,
+  Combobox,
   Group,
   Input,
-  LoadingOverlay,
-  Select,
+  InputBase,
+  Loader,
   Stack,
   Switch,
   TextInput,
+  useCombobox,
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 
+function formatBranchName(branch: FullSector['branch']) {
+  return branch.name || '';
+}
+
 interface Props {
-  sector: Sector;
+  sector: FullSector;
 }
 
 export default function SectorDetails({ sector }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
-  const [sectorData, setSectorData] = useState<Sector>(sector);
-  const [branchesData, setBranchesData] = useState<{ value: string; label: string }[]>([]);
+  const [sectorData, setSectorData] = useState<FullSector>(sector);
+  const [branchesData, setBranchesData] = useState<FullSector['branch'][]>([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
 
-  const schema = z.object({});
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+    onDropdownOpen: () => {
+      setComboSearch('');
+      if (branchesData.length === 0 && !branchesLoading) {
+        handleBranchSearch('').then(() => combobox.resetSelectedOption());
+      }
+    },
+  });
+  const [comboSearch, setComboSearch] = useState(formatBranchName(sector.branch) || '');
+  const [comboValue, setComboValue] = useState<FullSector['branch'] | null>(sector.branch);
+
+  const schema = z.object({
+    name: z.string().min(1, { message: 'Nom requis' }),
+    color: z.string(),
+    active: z.boolean(),
+    branchId: z.string().min(1, { message: 'Secteur requis' }),
+  });
 
   const form = useForm({
     initialValues: sectorData,
@@ -59,25 +81,27 @@ export default function SectorDetails({ sector }: Props) {
     setBranchesLoading(true);
     await fetchBranch('findMany', [
       {
-        where: { OR: [{ name: { contains: query } }, { id: { contains: query } }], active: true },
+        where: { OR: [{ name: { contains: query } }, { id: query }], active: true },
         take: 25,
         orderBy: { name: 'asc' },
       },
-    ]).then((branches: Branch[]) =>
-      setBranchesData(branches.map((b) => ({ value: b.id, label: b.name }))),
-    );
-    setBranchesLoading(false);
+    ])
+      .then((branches: FullSector['branch'][]) => setBranchesData(branches))
+      .catch(() => setBranchesData([]))
+      .finally(() => setBranchesLoading(false));
   }
 
   function handleCancel() {
     setReadonly(true);
     form.reset();
     form.resetDirty();
+    setComboSearch(formatBranchName(sector.branch) || '');
+    setComboValue(sector.branch);
   }
 
   async function handleSubmit(values: typeof form.values) {
     setLoading(true);
-    const updateRes: Sector | null = await fetchSector(
+    const updateRes: FullSector | null = await fetchSector(
       'update',
       [
         {
@@ -86,8 +110,9 @@ export default function SectorDetails({ sector }: Props) {
             name: values.name,
             color: values.color,
             active: values.active,
-            branch: { connect: { id: values.branchId } },
+            branch: { connect: { id: comboValue?.id } },
           },
+          include: { branch: true },
         },
       ],
       '/',
@@ -117,9 +142,26 @@ export default function SectorDetails({ sector }: Props) {
 
   const branchSearchChange = useDebouncedCallback(handleBranchSearch, 300);
 
-  useEffect(() => {
-    handleBranchSearch('');
-  }, []);
+  const options = (branchesData || []).map((item) => (
+    <Combobox.Option key={item.id} value={item.id}>
+      {formatBranchName(item)}
+    </Combobox.Option>
+  ));
+
+  function handleComboOptionSubmit(val: string) {
+    const selectedBranch = branchesData.find((branch) => branch.id === val) || sector.branch;
+    setComboValue(selectedBranch);
+    setComboSearch(formatBranchName(selectedBranch));
+    form.setFieldValue('branchId', selectedBranch?.id);
+    combobox.closeDropdown();
+  }
+
+  function handleComboInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    combobox.openDropdown();
+    combobox.updateSelectedOptionIndex();
+    setComboSearch(event.currentTarget.value);
+    branchSearchChange(event.currentTarget.value);
+  }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -138,23 +180,42 @@ export default function SectorDetails({ sector }: Props) {
             checked={form.getInputProps('active').value}
           />
         </Input.Wrapper>
-        <Box pos={'relative'}>
-          <LoadingOverlay
-            visible={branchesLoading}
-            zIndex={1000}
-            overlayProps={{ radius: 'sm', blur: 2 }}
-          />
-          <Select
-            label='Branche'
-            placeholder='Sélectionner une branche'
-            data={branchesData}
-            key={form.key('branchId')}
-            {...defaultProps('branchId')}
-            searchable
-            nothingFoundMessage='Aucune branche trouvée'
-            onSearchChange={branchSearchChange}
-          />
-        </Box>
+
+        <Combobox store={combobox} withinPortal={false} onOptionSubmit={handleComboOptionSubmit}>
+          <Combobox.Target>
+            <InputBase
+              key={form.key('branchId')}
+              {...defaultProps('branchId')}
+              rightSection={
+                readOnly ? null : branchesLoading ? <Loader size={18} /> : <Combobox.Chevron />
+              }
+              label='Branche'
+              rightSectionPointerEvents='none'
+              value={comboSearch}
+              onChange={handleComboInputChange}
+              onClick={() => !readOnly && combobox.openDropdown()}
+              onFocus={() => !readOnly && combobox.openDropdown()}
+              onBlur={() => {
+                if (readOnly) return;
+                combobox.closeDropdown();
+                setComboSearch(comboValue ? formatBranchName(comboValue) : comboSearch || '');
+              }}
+              placeholder='Rechercher une branche'
+            />
+          </Combobox.Target>
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              {loading ? (
+                <Combobox.Empty>Chargement...</Combobox.Empty>
+              ) : options.length > 0 ? (
+                options
+              ) : (
+                <Combobox.Empty>Aucune branche trouvée</Combobox.Empty>
+              )}
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
+
         <Group justify='center' mt='xl'>
           {readOnly ? (
             <Button onClick={() => setReadonly(false)}>Modifier</Button>

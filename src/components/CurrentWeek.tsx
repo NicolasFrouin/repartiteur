@@ -1,5 +1,5 @@
 import { getBranchesToMissions, getWeekAssignmentsData } from '@/actions/data';
-import CaregiversPlanning from './CaregiversPlanning';
+import CaregiversPlanning from './caregiver/CaregiversPlanning';
 
 export default async function CurrentWeek() {
   const branchesData = await getBranchesToMissions();

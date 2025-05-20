@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import CaregiversPlanning from '../CaregiversPlanning';
+import CaregiversPlanning from '../caregiver/CaregiversPlanning';
 import { BSM } from '@/types/utils';
 import { getBranchesToMissions } from '@/actions/data';
 import { Box, LoadingOverlay } from '@mantine/core';
-import { getWeekNumber } from '@/utils/date';
 import { Caregiver, Sector } from '@/generated/client';
+import { getWeekNumber } from '@/lib/utils';
 
 interface Props {
   // assignmentsData?: FullAssignment[];

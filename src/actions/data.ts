@@ -1,8 +1,8 @@
 'use server';
 
+import { getDate, getWeekDays } from '@/lib/utils';
 import prisma from '@/lib/prisma';
 import { BSM, FullAssignment } from '@/types/utils';
-import { getDate, getWeekDays } from '@/utils/date';
 
 export async function getBranchesToMissions(): Promise<BSM[]> {
   return await prisma.branch.findMany({

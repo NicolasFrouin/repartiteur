@@ -4,7 +4,7 @@ import { fetchSector } from '@/actions/common';
 import BSMTableCommon from '@/components/common/bsm/BSMTableCommon';
 import ColorCell from '@/components/common/table/ColorCell';
 import { FullSector } from '@/types/utils';
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Anchor } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
 import { FaPencil } from 'react-icons/fa6';
@@ -37,7 +37,9 @@ export default function SectorTable() {
   ];
   const tableBody: React.ReactNode[][] = data.map((s) => {
     return [
-      s.name,
+      <Anchor key={`${s.id}-name`} component={Link} href={`/admin/secteurs/${s.id}`}>
+        {s.name}
+      </Anchor>,
       s.active ? 'Actif' : 'Inactif',
       <ColorCell key={`${s.id}-color`} color={s.color} />,
       s.branch.name,

@@ -1,4 +1,4 @@
-import { MAIN_CONTENT_HEIGHT } from '@/utils/constants';
+import { MAIN_CONTENT_HEIGHT } from '@/lib/utils';
 import { Loader } from '@mantine/core';
 
 export default function Loading() {

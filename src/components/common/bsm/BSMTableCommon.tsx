@@ -29,25 +29,19 @@ export default function BSMTableCommon({ tableData, fetcher, total = 0 }: Props)
   }, [page, pageSize]);
 
   return (
-    <div>
-      <Flex direction={'column'} gap={'md'}>
-        <Box pos={'relative'}>
-          <LoadingOverlay
-            visible={loading}
-            zIndex={1000}
-            overlayProps={{ radius: 'sm', blur: 2 }}
-          />
-          <Table data={tableData} />
-        </Box>
-        <Group justify={'center'} mt={'md'}>
-          <Pagination
-            total={Math.ceil(total / pageSize)}
-            value={page}
-            onChange={setPage}
-            siblings={2}
-          />
-        </Group>
-      </Flex>
-    </div>
+    <Flex direction={'column'} gap={'md'}>
+      <Box pos={'relative'}>
+        <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+        <Table highlightOnHover data={tableData} />
+      </Box>
+      <Group justify={'center'} mt={'md'}>
+        <Pagination
+          total={Math.ceil(total / pageSize)}
+          value={page}
+          onChange={setPage}
+          siblings={2}
+        />
+      </Group>
+    </Flex>
   );
 }

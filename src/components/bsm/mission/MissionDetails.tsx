@@ -1,9 +1,6 @@
 'use client';
 
 import { fetchMission, fetchSector } from '@/actions/common';
-import ComboboxAsyncCommon from '@/components/common/form/ComboboxAsyncCommon';
-import { Sector } from '@/generated/client';
-import { debounce } from '@/lib/utils';
 import { FullMission } from '@/types/utils';
 import {
   Button,
@@ -11,6 +8,8 @@ import {
   Combobox,
   Group,
   Input,
+  InputBase,
+  Loader,
   Stack,
   Switch,
   TextInput,
@@ -19,7 +18,7 @@ import {
 import { useForm, zodResolver } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 
 function formatSectorName(sector: FullMission['sector']) {
@@ -40,17 +39,18 @@ export default function MissionDetails({ mission }: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
     onDropdownOpen: () => {
+      setComboSearch('');
       if (sectorsData.length === 0 && !sectorsLoading) {
         handleSectorSearch('').then(() => combobox.resetSelectedOption());
       }
     },
   });
   const [comboSearch, setComboSearch] = useState(formatSectorName(mission.sector) || '');
-  const [comboValue, setComboValue] = useState<Sector | null>(mission.sector);
+  const [comboValue, setComboValue] = useState<FullMission['sector'] | null>(mission.sector);
 
   const schema = z.object({
     name: z.string().min(1, { message: 'Nom requis' }),
-    color: z.string().min(1, { message: 'Couleur requise' }),
+    color: z.string(),
     active: z.boolean(),
     sectorId: z.string().min(1, { message: 'Secteur requis' }),
   });
@@ -77,9 +77,9 @@ export default function MissionDetails({ mission }: Props) {
     return props;
   };
 
-  async function handleSectorSearch(query?: string): Promise<FullMission['sector'][]> {
+  async function handleSectorSearch(query?: string) {
     setSectorsLoading(true);
-    const fetchRes = await fetchSector('findMany', [
+    await fetchSector('findMany', [
       {
         where: {
           OR: [
@@ -93,10 +93,10 @@ export default function MissionDetails({ mission }: Props) {
         orderBy: { name: 'asc' },
         include: { branch: { select: { name: true } } },
       },
-    ]).catch(() => []);
-    setSectorsLoading(false);
-
-    return fetchRes;
+    ])
+      .then((sectors: FullMission['sector'][]) => setSectorsData(sectors))
+      .catch(() => setSectorsData([]))
+      .finally(() => setSectorsLoading(false));
   }
 
   function handleCancel() {
@@ -108,10 +108,8 @@ export default function MissionDetails({ mission }: Props) {
   }
 
   async function handleSubmit(values: typeof form.values) {
-    console.log({ values });
-
     setLoading(true);
-    const updateRes = await fetchMission(
+    const updateRes: FullMission | null = await fetchMission(
       'update',
       [
         {
@@ -122,6 +120,7 @@ export default function MissionDetails({ mission }: Props) {
             active: values.active,
             sector: { connect: { id: comboValue?.id } },
           },
+          select: { sector: true },
         },
       ],
       '/',
@@ -134,6 +133,7 @@ export default function MissionDetails({ mission }: Props) {
         color: 'red',
         autoClose: 4e3,
       });
+      return;
     }
     setReadonly(true);
     setMissionData(updateRes);
@@ -150,17 +150,9 @@ export default function MissionDetails({ mission }: Props) {
 
   const sectorSearchChange = useDebouncedCallback(handleSectorSearch, 300);
 
-  function renderOption(option: FullMission['sector']) {
-    return (
-      <Combobox.Option key={option.id} value={option.id}>
-        {formatSectorName(option)}
-      </Combobox.Option>
-    );
-  }
-
   const options = (sectorsData || []).map((item) => (
     <Combobox.Option key={item.id} value={item.id}>
-      {item.name} ({item.branch.name})
+      {formatSectorName(item)}
     </Combobox.Option>
   ));
 
@@ -173,17 +165,11 @@ export default function MissionDetails({ mission }: Props) {
   }
 
   function handleComboInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    console.log('MissionDetails::handleComboInputChange', this, event);
-
     combobox.openDropdown();
     combobox.updateSelectedOptionIndex();
-    setComboSearch(event.target.value);
-    sectorSearchChange(event.target.value);
+    setComboSearch(event.currentTarget.value);
+    sectorSearchChange(event.currentTarget.value);
   }
-
-  useEffect(() => {
-    console.log({ comboValue, comboSearch, sectorsData });
-  }, [comboSearch, comboValue, sectorsData]);
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -203,18 +189,40 @@ export default function MissionDetails({ mission }: Props) {
           />
         </Input.Wrapper>
 
-        <ComboboxAsyncCommon<FullMission['sector']>
-          inputKey={form.key('sectorId')}
-          defaultProps={defaultProps('sectorId')}
-          readOnly={readOnly}
-          visuals={{ label: 'Secteur', placeholder: 'Sélectionner un secteur' }}
-          search={comboSearch}
-          setSearch={setComboSearch}
-          fetchData={handleSectorSearch}
-          renderOption={renderOption}
-          handleComboOptionSubmit={handleComboOptionSubmit}
-          handleComboInputChange={handleComboInputChange}
-        />
+        <Combobox store={combobox} withinPortal={false} onOptionSubmit={handleComboOptionSubmit}>
+          <Combobox.Target>
+            <InputBase
+              key={form.key('sectorId')}
+              {...defaultProps('sectorId')}
+              rightSection={
+                readOnly ? null : sectorsLoading ? <Loader size={18} /> : <Combobox.Chevron />
+              }
+              label='Secteur'
+              rightSectionPointerEvents='none'
+              value={comboSearch}
+              onChange={handleComboInputChange}
+              onClick={() => !readOnly && combobox.openDropdown()}
+              onFocus={() => !readOnly && combobox.openDropdown()}
+              onBlur={() => {
+                if (readOnly) return;
+                combobox.closeDropdown();
+                setComboSearch(comboValue ? formatSectorName(comboValue) : comboSearch || '');
+              }}
+              placeholder='Rechercher un secteur'
+            />
+          </Combobox.Target>
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              {loading ? (
+                <Combobox.Empty>Chargement...</Combobox.Empty>
+              ) : options.length > 0 ? (
+                options
+              ) : (
+                <Combobox.Empty>Aucun secteur trouvé</Combobox.Empty>
+              )}
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
 
         <Group justify='center' mt='xl'>
           {readOnly ? (
@@ -224,7 +232,7 @@ export default function MissionDetails({ mission }: Props) {
               <Button onClick={handleCancel} variant='subtle'>
                 Annuler
               </Button>
-              <Button type='submit' loading={sectorsLoading}>
+              <Button type='submit' loading={loading}>
                 Enregistrer
               </Button>
             </>

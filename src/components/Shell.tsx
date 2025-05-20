@@ -1,6 +1,5 @@
 'use client';
 
-import { HEADER_HEIGHT } from '@/utils/constants';
 import {
   ActionIcon,
   Affix,
@@ -16,6 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowUp } from 'react-icons/fa6';
 import Nav from './Nav';
+import { HEADER_HEIGHT } from '@/lib/utils';
 
 export default function Shell({ children }: React.PropsWithChildren) {
   const [opened, { toggle, close }] = useDisclosure();

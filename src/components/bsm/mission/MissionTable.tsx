@@ -4,7 +4,7 @@ import { fetchMission } from '@/actions/common';
 import BSMTableCommon from '@/components/common/bsm/BSMTableCommon';
 import ColorCell from '@/components/common/table/ColorCell';
 import { FullMission } from '@/types/utils';
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Anchor } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
 import { FaPencil } from 'react-icons/fa6';
@@ -37,7 +37,9 @@ export default function MissionTable() {
   ];
   const tableBody: React.ReactNode[][] = data.map((m) => {
     return [
-      m.name,
+      <Anchor key={`${m.id}-name`} component={Link} href={`/admin/missions/${m.id}`}>
+        {m.name}
+      </Anchor>,
       m.active ? 'Actif' : 'Inactif',
       <ColorCell key={`${m.id}-color`} color={m.color} />,
       m.sector.branch.name,

@@ -1,4 +1,3 @@
-import { caregivers } from '@/utils/data';
 import {
   Branch,
   Caregiver,
@@ -7,7 +6,7 @@ import {
   PrismaClient,
   User,
 } from '@/generated/client';
-import { randomColor } from '@/utils/color';
+import { caregivers, randomColor, toSlug } from '@/lib/utils';
 
 export async function seedCaregivers(
   prisma: PrismaClient,
@@ -20,6 +19,7 @@ export async function seedCaregivers(
 
   for (const [index, caregiver] of Object.entries(caregivers)) {
     caregiver.color = randomColor();
+    caregiver.slug = toSlug([caregiver.firstname, caregiver.lastname].join(' '));
 
     const randomUser = users[Math.floor(Math.random() * users.length)];
     if (randomUser) {
