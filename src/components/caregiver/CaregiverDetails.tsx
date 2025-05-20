@@ -1,39 +1,59 @@
 'use client';
 
 import { fetchBranch, fetchCaregiver } from '@/actions/common';
-import { Branch, Caregiver, CaregiverBigWeekType } from '@/generated/client';
-import { debounce, getWeekDay } from '@/lib/utils';
-import { BIG_WEEK_DAYS, getWeekNumber } from '@/utils/date';
+import { CaregiverBigWeekType } from '@/generated/client';
+import { BIG_WEEK_DAYS, getWeekDay, getWeekNumber } from '@/lib/utils';
+import { FullCaregiver } from '@/types/utils';
 import {
   Box,
   Button,
   ColorInput,
+  Combobox,
   Group,
   Input,
-  LoadingOverlay,
+  InputBase,
+  Loader,
   SegmentedControl,
-  Select,
   Stack,
   Switch,
   Text,
   TextInput,
+  useCombobox,
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
+import { useDebouncedCallback } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 
+function formatBranchName(branch: FullCaregiver['branch']) {
+  return branch.name || '';
+}
+
 interface Props {
-  caregiver: Caregiver;
+  caregiver: FullCaregiver;
 }
 
 export default function CaregiverDetails({ caregiver }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
-  const [caregiverData, setCaregiverData] = useState<Caregiver>(caregiver);
-  const [branchesData, setBranchesData] = useState<{ value: string; label: string }[]>([]);
+  const [caregiverData, setCaregiverData] = useState<FullCaregiver>(caregiver);
+  const [branchesData, setBranchesData] = useState<FullCaregiver['branch'][]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
 
   const isEvenWeek = getWeekNumber() % 2 === 0;
+
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+    onDropdownOpen: () => {
+      setComboSearch('');
+      if (branchesData.length === 0 && !branchesLoading) {
+        handleBranchSearch('').then(() => combobox.resetSelectedOption());
+      }
+    },
+  });
+  const [comboSearch, setComboSearch] = useState(formatBranchName(caregiver.branch) || '');
+  const [comboValue, setComboValue] = useState<FullCaregiver['branch'] | null>(caregiver.branch);
 
   const schema = z.object({
     firstname: z.string(),
@@ -67,28 +87,30 @@ export default function CaregiverDetails({ caregiver }: Props) {
   };
 
   async function handleBranchSearch(query: string) {
-    setLoading(true);
+    setBranchesLoading(true);
     await fetchBranch('findMany', [
       {
-        where: { OR: [{ name: { contains: query } }, { id: { contains: query } }], active: true },
+        where: { OR: [{ name: { contains: query } }, { id: query }], active: true },
         take: 25,
         orderBy: { name: 'asc' },
       },
-    ]).then((branches: Branch[]) =>
-      setBranchesData(branches.map((b) => ({ value: b.id, label: b.name }))),
-    );
-    setLoading(false);
+    ])
+      .then((branches: FullCaregiver['branch'][]) => setBranchesData(branches))
+      .catch(() => setBranchesData([]))
+      .finally(() => setBranchesLoading(false));
   }
 
   function handleCancel() {
     setReadonly(true);
     form.reset();
     form.resetDirty();
-    handleBranchSearch(caregiver.branchId);
+    setComboSearch(formatBranchName(caregiver.branch) || '');
+    setComboValue(caregiver.branch);
   }
 
   async function handleSubmit(values: ReturnType<(typeof form)['getValues']>) {
-    const updateRes: Caregiver | null = await fetchCaregiver(
+    setLoading(true);
+    const updateRes: FullCaregiver | null = await fetchCaregiver(
       'update',
       [
         {
@@ -97,7 +119,7 @@ export default function CaregiverDetails({ caregiver }: Props) {
             lastname: values.lastname,
             bigWeekType: values.bigWeekType,
             color: values.color,
-            branch: { connect: { id: values.branchId } },
+            branch: { connect: { id: comboValue?.id } },
             active: values.active,
           },
           where: { id: caregiver.id },
@@ -105,6 +127,7 @@ export default function CaregiverDetails({ caregiver }: Props) {
       ],
       '/',
     ).catch(() => null);
+
     if (!updateRes) {
       notifications.show({
         title: 'Erreur',
@@ -124,11 +147,31 @@ export default function CaregiverDetails({ caregiver }: Props) {
       color: 'green',
       autoClose: 4e3,
     });
+    setLoading(false);
   }
 
-  useEffect(() => {
-    handleBranchSearch('');
-  }, []);
+  const branchSearchChange = useDebouncedCallback(handleBranchSearch, 300);
+
+  const options = (branchesData || []).map((item) => (
+    <Combobox.Option key={item.id} value={item.id} selected={item.id === comboValue?.id}>
+      {formatBranchName(item)}
+    </Combobox.Option>
+  ));
+
+  function handleComboOptionSubmit(val: string) {
+    const selectedBranch = branchesData.find((branch) => branch.id === val) || caregiver.branch;
+    setComboValue(selectedBranch);
+    setComboSearch(formatBranchName(selectedBranch));
+    form.setFieldValue('branchId', selectedBranch?.id);
+    combobox.closeDropdown();
+  }
+
+  function handleComboInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    combobox.openDropdown();
+    combobox.updateSelectedOptionIndex();
+    setComboSearch(event.currentTarget.value);
+    branchSearchChange(event.currentTarget.value);
+  }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -174,19 +217,42 @@ export default function CaregiverDetails({ caregiver }: Props) {
           key={form.key('color')}
           {...defaultProps('color')}
         />
-        <Box pos={'relative'}>
-          <LoadingOverlay visible={loading} overlayProps={{ radius: 'sm', blur: 2 }} />
-          <Select
-            label='Branche'
-            placeholder='Sélectionner une branche'
-            data={branchesData}
-            key={form.key('branchId')}
-            {...defaultProps('branchId')}
-            searchable
-            nothingFoundMessage='Aucune branche trouvée'
-            onSearchChange={debounce(handleBranchSearch)}
-          />
-        </Box>
+
+        <Combobox store={combobox} withinPortal={false} onOptionSubmit={handleComboOptionSubmit}>
+          <Combobox.Target>
+            <InputBase
+              key={form.key('branchId')}
+              {...defaultProps('branchId')}
+              rightSection={
+                readOnly ? null : branchesLoading ? <Loader size={18} /> : <Combobox.Chevron />
+              }
+              label='Branche'
+              rightSectionPointerEvents='none'
+              value={comboSearch}
+              onChange={handleComboInputChange}
+              onClick={() => !readOnly && combobox.openDropdown()}
+              onFocus={() => !readOnly && combobox.openDropdown()}
+              onBlur={() => {
+                if (readOnly) return;
+                combobox.closeDropdown();
+                setComboSearch(comboValue ? formatBranchName(comboValue) : comboSearch || '');
+              }}
+              placeholder='Rechercher une branche'
+            />
+          </Combobox.Target>
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              {loading ? (
+                <Combobox.Empty>Chargement...</Combobox.Empty>
+              ) : options.length > 0 ? (
+                options
+              ) : (
+                <Combobox.Empty>Aucune branche trouvée</Combobox.Empty>
+              )}
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
+
         <Input.Wrapper label='Actif' {...defaultProps('active')}>
           <Switch
             key={form.key('active')}
@@ -203,7 +269,9 @@ export default function CaregiverDetails({ caregiver }: Props) {
             <Button onClick={handleCancel} variant='subtle'>
               Annuler
             </Button>
-            <Button type='submit'>Enregistrer</Button>
+            <Button type='submit' loading={loading}>
+              Enregistrer
+            </Button>
           </>
         )}
       </Group>
