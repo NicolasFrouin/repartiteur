@@ -4,7 +4,18 @@ import { fetchCaregiver } from '@/actions/common';
 import { getBranchesToMissions } from '@/actions/data';
 import { Branch, Caregiver, Sector } from '@/generated/client';
 import { BSM } from '@/types/utils';
-import { Box, Chip, Flex, Group, LoadingOverlay, Pagination, Table, Text } from '@mantine/core';
+import {
+  Anchor,
+  Box,
+  Chip,
+  Flex,
+  Group,
+  LoadingOverlay,
+  Pagination,
+  Table,
+  Text,
+} from '@mantine/core';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -27,10 +38,10 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   const [data, setData] = useState<BSM[]>([]);
 
   const tableHeaders: React.ReactNode[] = [
-    <Text key={'h-name'} ta={'center'} fw={'bold'}>
+    <Text key={'h-name'} fw={'bold'}>
       Nom
     </Text>,
-    <Text key={'h-branch'} ta={'center'} fw={'bold'}>
+    <Text key={'h-branch'} fw={'bold'}>
       Branche
     </Text>,
     <Text key={'h-sectors'} ta={'center'} fw={'bold'}>
@@ -40,12 +51,12 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   const tableBody: React.ReactNode[][] = caregivers.map((c) => {
     const branch = data.find((b) => b.id === c.branchId);
     return [
-      <Text key={`${c.id}-name`} ta={'center'}>
+      <Anchor key={`${c.id}-name`} component={Link} href={`/admin/soignants/${c.id}`}>
         {[c.firstname, c.lastname].join(' ')}
-      </Text>,
-      <Text key={`${c.id}-branch`} ta={'center'}>
+      </Anchor>,
+      <Anchor key={`${c.id}-branch`} component={Link} href={`/admin/branches/${c.branchId}`}>
         {branch ? branch.name : 'Aucune branche'}
-      </Text>,
+      </Anchor>,
       branch ? (
         <Chip.Group
           key={`${c.id}-sectors`}
