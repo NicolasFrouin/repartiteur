@@ -1,6 +1,5 @@
-import { branches } from '@/utils/data';
 import { Branch, PrismaClient, User } from '@/generated/client';
-import { randomColor } from '@/utils/color';
+import { branches, randomColor, toSlug } from '@/lib/utils';
 
 export async function seedBranches(prisma: PrismaClient, users: User[]): Promise<Branch[]> {
   console.group('Seeding branches...');
@@ -11,6 +10,8 @@ export async function seedBranches(prisma: PrismaClient, users: User[]): Promise
 
   for (const branch of branches) {
     branch.color = randomColor();
+    branch.slug = toSlug(branch.name || '');
+
     const randomUser = users[Math.floor(Math.random() * users.length)];
     const userData = {} as { createdById?: string; updatedById?: string };
     if (randomUser) {
@@ -27,6 +28,8 @@ export async function seedBranches(prisma: PrismaClient, users: User[]): Promise
     for (const createdBranch of createdBranches) {
       for (const sector of sectors) {
         sector.color = randomColor();
+        sector.slug = toSlug(sector.name || '');
+
         const { missions, ...sectorData } = sector;
         const createdSectors = await prisma.sector.createManyAndReturn({
           data: { ...sectorData, branchId: createdBranch.id, ...userData },
@@ -36,6 +39,8 @@ export async function seedBranches(prisma: PrismaClient, users: User[]): Promise
         for (const createdSector of createdSectors) {
           for (const mission of missions) {
             mission.color = randomColor();
+            mission.slug = toSlug(mission.slug || '');
+
             await prisma.mission.createManyAndReturn({
               data: { ...mission, sectorId: createdSector.id, ...userData },
             });

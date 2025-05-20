@@ -1,8 +1,6 @@
 import { Assignment, Branch, Mission, Sector } from '@/generated/client';
-import { cn } from '@/lib/utils';
+import { cn, formatDate, getWeekDays, getWeekNumber, MAIN_CONTENT_HEIGHT } from '@/lib/utils';
 import { BSM, FullAssignment } from '@/types/utils';
-import { MAIN_CONTENT_HEIGHT } from '@/utils/constants';
-import { formatDate, getWeekDays, getWeekNumber } from '@/utils/date';
 import {
   Mark,
   ScrollArea,

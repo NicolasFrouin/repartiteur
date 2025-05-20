@@ -1,7 +1,5 @@
-import { getDate, getWeekDays, getWeekNumber, isBigWeek } from '@/utils/date';
-import { rand } from '@/utils/number';
 import { CaregiverBigWeekType, PrismaClient } from '@/generated/client';
-import { randomColor } from '@/utils/color';
+import { getDate, getWeekDays, getWeekNumber, isBigWeek, rand, randomColor } from '@/lib/utils';
 
 export async function seedAssignments(prisma: PrismaClient = new PrismaClient()) {
   const refDay = getDate();

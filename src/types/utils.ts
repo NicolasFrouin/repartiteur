@@ -1,6 +1,6 @@
 import { Assignment, Branch, Caregiver, Mission, Sector } from '@/generated/client';
 
-type NotRequired = 'id' | 'color' | 'active' | 'createdAt' | 'updatedAt' | `${string}Id`;
+type NotRequired = 'id' | 'slug' | 'color' | 'active' | 'createdAt' | 'updatedAt' | `${string}Id`;
 
 export type NonRequired<T, O extends keyof T = never> = {
   [K in keyof T as K extends NotRequired | O ? never : K]-?: T[K];
@@ -10,4 +10,8 @@ export type BranchesSectorsMissions = Branch & { sectors: (Sector & { missions: 
 /** @alias {@link BranchesSectorsMissions} */
 export type BSM = BranchesSectorsMissions;
 
+export type FullCaregiver = Caregiver & { branch: Branch };
 export type FullAssignment = Assignment & { caregiver: Caregiver; mission: Mission };
+export type FullBranch = Branch & { sectors: Sector[] };
+export type FullSector = Sector & { missions: Mission[]; branch: Branch };
+export type FullMission = Mission & { sector: Omit<FullSector, 'missions'> };
