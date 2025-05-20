@@ -4,6 +4,7 @@ import { fetchCaregiver } from '@/actions/common';
 import { Caregiver } from '@/generated/client';
 import {
   ActionIcon,
+  Anchor,
   Box,
   Flex,
   Group,
@@ -31,7 +32,9 @@ export default function CaregiverTable() {
   const tableHeaders: React.ReactNode[] = ['Nom', 'État', 'Branche', 'Couleur', 'Actions'];
   const tableBody = data.map((c) => {
     return [
-      <Text key={`${c.id}-name`}>{[c.firstname, c.lastname].join(' ')}</Text>,
+      <Anchor key={`${c.id}-name`} component={Link} href={`/admin/soignants/${c.id}`}>
+        {[c.firstname, c.lastname].join(' ')}
+      </Anchor>,
       <Text key={`${c.id}-status`}>{c.active ? 'Actif' : 'Inactif'}</Text>,
       <Link key={`${c.id}-branch`} href={`/admin/branches/${c.branchId}`}>
         {c.branch.name}
