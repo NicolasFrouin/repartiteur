@@ -12,12 +12,15 @@ import {
   Loader,
   Stack,
   Switch,
+  Text,
   TextInput,
   useCombobox,
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
@@ -171,6 +174,37 @@ export default function MissionDetails({ mission }: Props) {
     sectorSearchChange(event.currentTarget.value);
   }
 
+  async function handleDelete() {
+    modals.openConfirmModal({
+      title: 'Supprimer cette mission',
+      centered: true,
+      labels: { confirm: 'Supprimer', cancel: 'Annuler' },
+      confirmProps: { color: 'red' },
+      children: <Text>Êtes-vous sûr de vouloir supprimer cette mission ?</Text>,
+      async onConfirm() {
+        setLoading(true);
+        const deleteRes = await fetchMission('delete', [{ where: { id: mission.id } }], '/');
+        if (!deleteRes) {
+          notifications.show({
+            title: 'Erreur',
+            message: 'Erreur lors de la suppression de la mission',
+            color: 'red',
+            autoClose: 4e3,
+          });
+        } else {
+          notifications.show({
+            title: 'Suppression de la mission',
+            message: 'Mission supprimée avec succès',
+            color: 'green',
+            autoClose: 4e3,
+          });
+        }
+        setLoading(false);
+        redirect('/admin/missions');
+      },
+    });
+  }
+
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
@@ -224,12 +258,17 @@ export default function MissionDetails({ mission }: Props) {
           </Combobox.Dropdown>
         </Combobox>
 
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' className='!flex-col-reverse md:!flex-row'>
           {readOnly ? (
-            <Button onClick={() => setReadonly(false)}>Modifier</Button>
+            <Button type='button' onClick={() => setReadonly(false)}>
+              Modifier
+            </Button>
           ) : (
             <>
-              <Button onClick={handleCancel} variant='subtle'>
+              <Button type='button' color='red' onClick={handleDelete}>
+                Supprimer
+              </Button>
+              <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>

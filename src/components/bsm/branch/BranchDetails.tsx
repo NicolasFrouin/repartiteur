@@ -2,9 +2,11 @@
 
 import { fetchBranch } from '@/actions/common';
 import { Branch } from '@/generated/client';
-import { Button, ColorInput, Group, Input, Stack, Switch, TextInput } from '@mantine/core';
+import { Button, ColorInput, Group, Input, Stack, Switch, Text, TextInput } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
@@ -81,6 +83,37 @@ export default function BranchDetails({ branch }: Props) {
     setLoading(false);
   }
 
+  async function handleDelete() {
+    modals.openConfirmModal({
+      title: 'Supprimer cette branche',
+      centered: true,
+      labels: { confirm: 'Supprimer', cancel: 'Annuler' },
+      confirmProps: { color: 'red' },
+      children: <Text>Êtes-vous sûr de vouloir supprimer cette branche ?</Text>,
+      async onConfirm() {
+        setLoading(true);
+        const deleteRes = await fetchBranch('delete', [{ where: { id: branch.id } }], '/');
+        if (!deleteRes) {
+          notifications.show({
+            title: 'Erreur',
+            message: 'Erreur lors de la suppression de la branche',
+            color: 'red',
+            autoClose: 4e3,
+          });
+        } else {
+          notifications.show({
+            title: 'Suppression de la branche',
+            message: 'Branche supprimée avec succès',
+            color: 'green',
+            autoClose: 4e3,
+          });
+        }
+        setLoading(false);
+        redirect('/branches');
+      },
+    });
+  }
+
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
@@ -98,12 +131,18 @@ export default function BranchDetails({ branch }: Props) {
             checked={form.getInputProps('active').value}
           />
         </Input.Wrapper>
-        <Group justify='center' mt='xl'>
+
+        <Group justify='center' mt='xl' className='!flex-col-reverse md:!flex-row'>
           {readOnly ? (
-            <Button onClick={() => setReadonly(false)}>Modifier</Button>
+            <Button type='button' onClick={() => setReadonly(false)}>
+              Modifier
+            </Button>
           ) : (
             <>
-              <Button onClick={handleCancel} variant='subtle'>
+              <Button type='button' color='red' onClick={handleDelete}>
+                Supprimer
+              </Button>
+              <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>

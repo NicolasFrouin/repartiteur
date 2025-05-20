@@ -12,12 +12,15 @@ import {
   Loader,
   Stack,
   Switch,
+  Text,
   TextInput,
   useCombobox,
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
@@ -125,18 +128,18 @@ export default function SectorDetails({ sector }: Props) {
         color: 'red',
         autoClose: 4e3,
       });
-      return;
+    } else {
+      setSectorData(updateRes);
+      form.setValues(updateRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Modification du secteur',
+        message: 'Secteur modifié avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
     }
     setReadonly(true);
-    setSectorData(updateRes);
-    form.setValues(updateRes);
-    form.resetDirty();
-    notifications.show({
-      title: 'Modification du secteur',
-      message: 'Secteur modifié avec succès',
-      color: 'green',
-      autoClose: 4e3,
-    });
     setLoading(false);
   }
 
@@ -161,6 +164,37 @@ export default function SectorDetails({ sector }: Props) {
     combobox.updateSelectedOptionIndex();
     setComboSearch(event.currentTarget.value);
     branchSearchChange(event.currentTarget.value);
+  }
+
+  async function handleDelete() {
+    modals.openConfirmModal({
+      title: 'Supprimer ce secteur',
+      centered: true,
+      labels: { confirm: 'Supprimer', cancel: 'Annuler' },
+      confirmProps: { color: 'red' },
+      children: <Text>Êtes-vous sûr de vouloir supprimer ce secteur ?</Text>,
+      async onConfirm() {
+        setLoading(true);
+        const deleteRes = await fetchSector('delete', [{ where: { id: sector.id } }], '/');
+        if (!deleteRes) {
+          notifications.show({
+            title: 'Erreur',
+            message: 'Erreur lors de la suppression du secteur',
+            color: 'red',
+            autoClose: 4e3,
+          });
+        } else {
+          notifications.show({
+            title: 'Suppression de secteur',
+            message: 'Secteur supprimé avec succès',
+            color: 'green',
+            autoClose: 4e3,
+          });
+        }
+        setLoading(false);
+        redirect('/admin/secteurs');
+      },
+    });
   }
 
   return (
@@ -216,12 +250,17 @@ export default function SectorDetails({ sector }: Props) {
           </Combobox.Dropdown>
         </Combobox>
 
-        <Group justify='center' mt='xl'>
+        <Group justify='center' mt='xl' className='!flex-col-reverse md:!flex-row'>
           {readOnly ? (
-            <Button onClick={() => setReadonly(false)}>Modifier</Button>
+            <Button type='button' onClick={() => setReadonly(false)}>
+              Modifier
+            </Button>
           ) : (
             <>
-              <Button onClick={handleCancel} variant='subtle'>
+              <Button type='button' color='red' onClick={handleDelete}>
+                Supprimer
+              </Button>
+              <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>

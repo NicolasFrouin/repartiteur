@@ -22,7 +22,9 @@ import {
 } from '@mantine/core';
 import { useForm, zodResolver } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
+import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
@@ -135,18 +137,18 @@ export default function CaregiverDetails({ caregiver }: Props) {
         color: 'red',
         autoClose: 4e3,
       });
-      return;
+    } else {
+      setCaregiverData(updateRes);
+      form.setValues(updateRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Modification de soignant',
+        message: 'Soignant modifié avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
     }
     setReadonly(true);
-    setCaregiverData(updateRes);
-    form.setValues(updateRes);
-    form.resetDirty();
-    notifications.show({
-      title: 'Modification de soignant',
-      message: 'Soignant modifié avec succès',
-      color: 'green',
-      autoClose: 4e3,
-    });
     setLoading(false);
   }
 
@@ -171,6 +173,37 @@ export default function CaregiverDetails({ caregiver }: Props) {
     combobox.updateSelectedOptionIndex();
     setComboSearch(event.currentTarget.value);
     branchSearchChange(event.currentTarget.value);
+  }
+
+  async function handleDelete() {
+    modals.openConfirmModal({
+      title: 'Supprimer ce soignant',
+      centered: true,
+      labels: { confirm: 'Supprimer', cancel: 'Annuler' },
+      confirmProps: { color: 'red' },
+      children: <Text>Êtes-vous sûr de vouloir supprimer ce soignant ?</Text>,
+      async onConfirm() {
+        setLoading(true);
+        const deleteRes = await fetchCaregiver('delete', [{ where: { id: caregiver.id } }], '/');
+        if (!deleteRes) {
+          notifications.show({
+            title: 'Erreur',
+            message: 'Erreur lors de la suppression du soignant',
+            color: 'red',
+            autoClose: 4e3,
+          });
+        } else {
+          notifications.show({
+            title: 'Suppression de soignant',
+            message: 'Soignant supprimé avec succès',
+            color: 'green',
+            autoClose: 4e3,
+          });
+        }
+        setLoading(false);
+        redirect('/admin/soignants');
+      },
+    });
   }
 
   return (
@@ -261,12 +294,18 @@ export default function CaregiverDetails({ caregiver }: Props) {
           />
         </Input.Wrapper>
       </Stack>
-      <Group justify='center' mt='xl'>
+
+      <Group justify='center' mt='xl' className='!flex-col-reverse md:!flex-row'>
         {readOnly ? (
-          <Button onClick={() => setReadonly(false)}>Modifier</Button>
+          <Button type='button' onClick={() => setReadonly(false)}>
+            Modifier
+          </Button>
         ) : (
           <>
-            <Button onClick={handleCancel} variant='subtle'>
+            <Button type='button' color='red' onClick={handleDelete}>
+              Supprimer
+            </Button>
+            <Button type='button' onClick={handleCancel} variant='light'>
               Annuler
             </Button>
             <Button type='submit' loading={loading}>
