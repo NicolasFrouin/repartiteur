@@ -1,11 +1,11 @@
-import CaregiverTable from '@/components/caregiver/CaregiverTable';
-import { Anchor, Box, Breadcrumbs, Button, Group } from '@mantine/core';
+import CaregiverDetails from '@/components/caregiver/CaregiverDetails';
+import { Anchor, Box, Breadcrumbs, Group } from '@mantine/core';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Liste des soignants',
-  description: 'Liste des soignants',
+  title: 'Nouveau soignant',
+  description: 'Créer un nouveau soignant',
 };
 
 export default function Page() {
@@ -19,12 +19,14 @@ export default function Page() {
           <Anchor component={Link} href={'/admin/soignants'}>
             Soignants
           </Anchor>
+          <Anchor component={Link} href={'/admin/soignants/nouveau'}>
+            Nouveau soignant
+          </Anchor>
         </Breadcrumbs>
-        <Button component={Link} href={'/admin/soignants/nouveau'} variant='outline' color='blue'>
-          Créer un soignant
-        </Button>
       </Group>
-      <CaregiverTable />
+      <Box className='md:px-[20%]'>
+        <CaregiverDetails />
+      </Box>
     </Box>
   );
 }

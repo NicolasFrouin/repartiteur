@@ -1,8 +1,8 @@
 'use client';
 
 import { fetchBranch, fetchCaregiver } from '@/actions/common';
-import { CaregiverBigWeekType } from '@/generated/client';
-import { BIG_WEEK_DAYS, getWeekDay, getWeekNumber } from '@/lib/utils';
+import { CaregiverBigWeekType, CaregiverTime } from '@/generated/client';
+import { BIG_WEEK_DAYS, getWeekDay, getWeekNumber, toSlug } from '@/lib/utils';
 import { FullCaregiver } from '@/types/utils';
 import {
   Box,
@@ -28,17 +28,30 @@ import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
-function formatBranchName(branch: FullCaregiver['branch']) {
-  return branch.name || '';
+const defaultCaregiver = {
+  id: '',
+  firstname: '',
+  lastname: '',
+  slug: '',
+  color: '',
+  bigWeekType: CaregiverBigWeekType.EVEN,
+  active: true,
+  branchId: '',
+} as FullCaregiver;
+
+function formatBranchName(branch?: FullCaregiver['branch']) {
+  return branch?.name || '';
 }
 
 interface Props {
-  caregiver: FullCaregiver;
+  caregiver?: FullCaregiver;
 }
 
-export default function CaregiverDetails({ caregiver }: Props) {
+export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props) {
+  const isCreating = !Boolean(caregiver.id);
+
   const [loading, setLoading] = useState(false);
-  const [readOnly, setReadonly] = useState(true);
+  const [readOnly, setReadonly] = useState(!isCreating);
   const [caregiverData, setCaregiverData] = useState<FullCaregiver>(caregiver);
   const [branchesData, setBranchesData] = useState<FullCaregiver['branch'][]>([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
@@ -55,14 +68,20 @@ export default function CaregiverDetails({ caregiver }: Props) {
     },
   });
   const [comboSearch, setComboSearch] = useState(formatBranchName(caregiver.branch) || '');
-  const [comboValue, setComboValue] = useState<FullCaregiver['branch'] | null>(caregiver.branch);
+  const [comboValue, setComboValue] = useState<FullCaregiver['branch'] | null>(
+    caregiver.branch || null,
+  );
 
   const schema = z.object({
-    firstname: z.string(),
-    lastname: z.string(),
+    firstname: z.string().min(1, 'Prénom requis'),
+    lastname: z.string().min(1, 'Nom requis'),
     bigWeekType: z.enum([CaregiverBigWeekType.EVEN, CaregiverBigWeekType.ODD]),
-    color: z.string(),
-    branchId: z.string(),
+    color: z
+      .string({ coerce: true })
+      .startsWith('#', 'Seuls les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .optional()
+      .or(z.literal('')),
+    branchId: z.string().min(1, 'Branche requise'),
     active: z.boolean(),
   });
 
@@ -107,11 +126,51 @@ export default function CaregiverDetails({ caregiver }: Props) {
     form.reset();
     form.resetDirty();
     setComboSearch(formatBranchName(caregiver.branch) || '');
-    setComboValue(caregiver.branch);
+    setComboValue(caregiver.branch || null);
   }
 
-  async function handleSubmit(values: ReturnType<(typeof form)['getValues']>) {
-    setLoading(true);
+  async function handleCreate(values: typeof form.values) {
+    const createRes: FullCaregiver | null = await fetchCaregiver(
+      'create',
+      [
+        {
+          data: {
+            firstname: values.firstname,
+            lastname: values.lastname,
+            slug: toSlug([values.firstname, values.lastname].join(' ')),
+            time: CaregiverTime.DAY,
+            bigWeekType: values.bigWeekType,
+            color: values.color,
+            branch: { connect: { id: comboValue?.id } },
+            active: values.active,
+          },
+        },
+      ],
+      '/',
+    ).catch(() => null);
+
+    if (!createRes) {
+      notifications.show({
+        title: 'Erreur',
+        message: 'Erreur lors de la création du soignant',
+        color: 'red',
+        autoClose: 4e3,
+      });
+    } else {
+      setCaregiverData(createRes);
+      form.setValues(createRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Création de soignant',
+        message: 'Soignant créé avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
+      redirect(`/admin/soignants/${createRes.id}`);
+    }
+  }
+
+  async function handleUpdate(values: typeof form.values) {
     const updateRes: FullCaregiver | null = await fetchCaregiver(
       'update',
       [
@@ -149,6 +208,17 @@ export default function CaregiverDetails({ caregiver }: Props) {
       });
     }
     setReadonly(true);
+  }
+
+  async function handleSubmit(values: ReturnType<(typeof form)['getValues']>) {
+    if (readOnly) return;
+
+    setLoading(true);
+    if (isCreating) {
+      await handleCreate(values);
+    } else {
+      await handleUpdate(values);
+    }
     setLoading(false);
   }
 
@@ -275,7 +345,7 @@ export default function CaregiverDetails({ caregiver }: Props) {
           </Combobox.Target>
           <Combobox.Dropdown>
             <Combobox.Options>
-              {loading ? (
+              {branchesLoading ? (
                 <Combobox.Empty>Chargement...</Combobox.Empty>
               ) : options.length > 0 ? (
                 options
@@ -302,14 +372,18 @@ export default function CaregiverDetails({ caregiver }: Props) {
           </Button>
         ) : (
           <>
-            <Button type='button' color='red' onClick={handleDelete}>
-              Supprimer
-            </Button>
-            <Button type='button' onClick={handleCancel} variant='light'>
-              Annuler
-            </Button>
+            {!isCreating && (
+              <>
+                <Button type='button' color='red' onClick={handleDelete}>
+                  Supprimer
+                </Button>
+                <Button type='button' onClick={handleCancel} variant='light'>
+                  Annuler
+                </Button>
+              </>
+            )}
             <Button type='submit' loading={loading}>
-              Enregistrer
+              {isCreating ? 'Créer' : 'Enregistrer'}
             </Button>
           </>
         )}
