@@ -82,6 +82,25 @@ export function getDate(date: Date = new Date()) {
   return new Date(date.setHours(0, 0, 0, 0));
 }
 
+/**
+ * Returns the name of the day of the week corresponding to the given number.
+ *
+ * @param day - The number of the day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+ * @returns The name of the day in French
+ */
 export function getWeekDay(day: number): string {
   return dayjs().weekday(day).format('dddd');
+}
+
+/**
+ * Returns the first day of the week corresponding to the given week number and year.
+ *
+ * @param weekNumber - The week number {@link getWeekNumber}
+ * @param year - The year (default: current year)
+ * @returns A Date object representing the first day of the week
+ */
+export function getFirstDayOfWeek(weekNumber: number, year: number = new Date().getFullYear()) {
+  const firstDayOfYear = new Date(year, 0, 1);
+  const daysToAdd = (weekNumber - 1) * 7 - firstDayOfYear.getDay() + 1;
+  return new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysToAdd));
 }

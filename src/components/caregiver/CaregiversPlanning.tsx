@@ -1,5 +1,12 @@
 import { Assignment, Branch, Mission, Sector } from '@/generated/client';
-import { cn, formatDate, getWeekDays, getWeekNumber, MAIN_CONTENT_HEIGHT } from '@/lib/utils';
+import {
+  cn,
+  formatDate,
+  getFirstDayOfWeek,
+  getWeekDays,
+  getWeekNumber,
+  MAIN_CONTENT_HEIGHT,
+} from '@/lib/utils';
 import { BSM, FullAssignment } from '@/types/utils';
 import {
   Mark,
@@ -19,7 +26,7 @@ type FullSector = Sector & { missions: Mission[] };
 type FullBranch = Branch & { sectors: FullSector[] };
 
 interface Props {
-  weekNumber?: number | string;
+  weekNumber?: number;
   options?: Partial<{ ScrollArea: ScrollAreaProps }>;
   assignmentsData?: FullAssignment[];
   branchesData?: BSM[];
@@ -32,7 +39,7 @@ export default function CaregiversPlanning({
   options = {},
 }: Props) {
   const caregiverCache = new Map<string, string[]>();
-  const days = getWeekDays();
+  const days = getWeekDays(getFirstDayOfWeek(weekNumber));
 
   function getBranchSpan(b: FullBranch) {
     return b.sectors.reduce((acc: number, s: FullSector) => acc + getSectorSpan(s), 0);

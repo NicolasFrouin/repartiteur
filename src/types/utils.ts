@@ -1,6 +1,14 @@
 import { Assignment, Branch, Caregiver, Mission, Sector } from '@/generated/client';
 
-type NotRequired = 'id' | 'slug' | 'color' | 'active' | 'createdAt' | 'updatedAt' | `${string}Id`;
+type NotRequired =
+  | 'id'
+  | 'slug'
+  | 'color'
+  | 'active'
+  | 'archived'
+  | 'createdAt'
+  | 'updatedAt'
+  | `${string}Id`;
 
 export type NonRequired<T, O extends keyof T = never> = {
   [K in keyof T as K extends NotRequired | O ? never : K]-?: T[K];
