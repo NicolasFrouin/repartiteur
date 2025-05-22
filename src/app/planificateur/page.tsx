@@ -1,13 +1,12 @@
 'use client';
 
-import CalendarOptions, { TCalendarOptions } from '@/components/planner/CalendarOptions';
+import CalendarOptions from '@/components/planner/CalendarOptions';
 import CalendarTouchUp from '@/components/planner/CalendarTouchUp';
 import CaregiverOptions from '@/components/planner/CaregiverOptions';
 import { Caregiver, Sector } from '@/generated/client';
-import { getFirstDayOfWeek, getWeekNumber } from '@/lib/utils';
-import { FullAssignment } from '@/types/utils';
+import { DEFAULT_CALENDAR_OPTIONS } from '@/lib/utils';
+import { FullAssignment, TCalendarOptions } from '@/types/utils';
 import { Box, Button, Group, Stepper } from '@mantine/core';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 
 interface StepProps {
@@ -22,30 +21,28 @@ export default function Page() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
   const [weekCalendar, setWeekCalendar] = useState<FullAssignment[] | null>(null);
-  const [calendarOptions, setCalendarOptions] = useState<TCalendarOptions>({
-    date: dayjs(getFirstDayOfWeek(getWeekNumber() + 1)).toISOString(),
-    recurence: false,
-  });
+  const [calendarOptions, setCalendarOptions] =
+    useState<TCalendarOptions>(DEFAULT_CALENDAR_OPTIONS);
   const [forbiddenSectors, setForbiddenSectors] = useState<Record<Caregiver['id'], Sector['id'][]>>(
     {},
   );
 
   const STEPS: StepProps[] = [
     {
-      label: 'Restriction de secteurs',
-      component: (
-        <CaregiverOptions
-          forbiddenSectors={forbiddenSectors}
-          setForbiddenSectors={setForbiddenSectors}
-        />
-      ),
-    },
-    {
       label: 'Options de génération',
       component: (
         <CalendarOptions
           calendarOptions={calendarOptions}
           setCalendarOptions={setCalendarOptions}
+        />
+      ),
+    },
+    {
+      label: 'Restriction de secteurs',
+      component: (
+        <CaregiverOptions
+          forbiddenSectors={forbiddenSectors}
+          setForbiddenSectors={setForbiddenSectors}
         />
       ),
     },
@@ -100,7 +97,7 @@ export default function Page() {
           </Stepper.Step>
         ))}
       </Stepper>
-      <Group justify={'center'} mt='xl'>
+      <Group justify={'center'} mt='lg'>
         <Button onClick={prevStep} loading={loading} variant={'outline'} disabled={active === 0}>
           Précédent
         </Button>

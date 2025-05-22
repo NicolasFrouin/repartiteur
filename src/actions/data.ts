@@ -5,11 +5,10 @@ import prisma from '@/lib/prisma';
 import { BSM, FullAssignment } from '@/types/utils';
 
 export async function getBranchesToMissions(): Promise<BSM[]> {
+  const where = { active: true, archived: false };
   return await prisma.branch.findMany({
-    include: {
-      sectors: { include: { missions: { where: { active: true } } }, where: { active: true } },
-    },
-    where: { active: true },
+    include: { sectors: { include: { missions: { where } }, where } },
+    where,
   });
 }
 

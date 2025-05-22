@@ -2,13 +2,13 @@
 
 import { getBranchesToMissions } from '@/actions/data';
 import { Caregiver, Sector } from '@/generated/client';
-import { getWeekNumber } from '@/lib/utils';
-import { BSM, FullAssignment } from '@/types/utils';
+import { DEFAULT_CALENDAR_OPTIONS, getWeekNumber } from '@/lib/utils';
+import { BSM, FullAssignment, TCalendarOptions } from '@/types/utils';
 import { Box, Button, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core';
 import { Metadata } from 'next';
 import { useEffect, useState } from 'react';
 import CaregiversPlanning from '../caregiver/CaregiversPlanning';
-import { DEFAULT_CALENDAR_OPTIONS, TCalendarOptions } from './CalendarOptions';
+import { generateWeekCalendar } from '@/actions/assignments';
 
 export const metadata: Metadata = { title: '' };
 
@@ -22,6 +22,7 @@ interface Props {
 
 export default function CalendarTouchUp({
   calendarOptions = DEFAULT_CALENDAR_OPTIONS,
+  forbiddenSectors = {},
   branchesData = null,
   weekCalendar = null,
   setWeekCalendar,
@@ -32,7 +33,8 @@ export default function CalendarTouchUp({
 
   async function handleGenerateCalendar() {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const res = await generateWeekCalendar(forbiddenSectors, calendarOptions);
+    console.log('res', res);
     setGenerated(true);
     setWeekCalendar?.([{ id: '1' }] as unknown as FullAssignment[]);
     setLoading(false);

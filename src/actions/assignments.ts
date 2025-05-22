@@ -1,18 +1,21 @@
 'use server';
 
 import { Caregiver, Sector } from '@/generated/client';
-import prisma from '@/lib/prisma';
-import { getFirstDayOfWeek, getWeekDays, getWeekNumber } from '@/lib/utils';
+import { getDate, getWeekDays } from '@/lib/utils';
+import { FullAssignment, TCalendarOptions } from '@/types/utils';
+import { getBranchesToMissions } from './data';
 
 export async function generateWeekCalendar(
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>,
-  weekNumber: number = getWeekNumber(),
-  year: number = new Date().getFullYear(),
-) {
-  const weekDays = getWeekDays(getFirstDayOfWeek(weekNumber, year));
+  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
+): Promise<FullAssignment[]> {
+  console.group('generateWeekCalendar');
+  const weekDays = getWeekDays(new Date(calendarOptions.date)).map(getDate);
+  const bsm = await getBranchesToMissions();
 
-  const res = prisma.$transaction([
-    prisma.assignment.findMany({ where: { date: { in: weekDays } } }),
-  ]);
-  return res;
+  console.log({ forbiddenSectors, calendarOptions });
+  console.log({ weekDays, bsm });
+
+  console.groupEnd();
+  return [{ date: new Date(), caregiverId: '', missionId: '' }] as FullAssignment[];
 }

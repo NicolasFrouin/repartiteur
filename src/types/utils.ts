@@ -23,3 +23,5 @@ export type FullAssignment = Assignment & { caregiver: Caregiver; mission: Missi
 export type FullBranch = Branch & { sectors: Sector[] };
 export type FullSector = Sector & { missions: Mission[]; branch: Branch };
 export type FullMission = Mission & { sector: Omit<FullSector, 'missions'> };
+
+export type TCalendarOptions = { date: string; recurence: boolean };
