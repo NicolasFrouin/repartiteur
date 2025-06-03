@@ -82,6 +82,74 @@ export function getDate(date: Date = new Date()) {
   return new Date(date.setHours(0, 0, 0, 0));
 }
 
+/**
+ * Returns the name of the day of the week corresponding to the given number.
+ *
+ * @param day - The number of the day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+ * @returns The name of the day in French
+ */
 export function getWeekDay(day: number): string {
   return dayjs().weekday(day).format('dddd');
+}
+
+/**
+ * Returns the first day of the week corresponding to the given week number and year.
+ *
+ * @param weekNumber - The week number {@link getWeekNumber}
+ * @param year - The year (default: current year)
+ * @returns A Date object representing the first day of the week
+ */
+export function getFirstDayOfWeek(weekNumber: number, year: number = new Date().getFullYear()) {
+  const firstDayOfYear = new Date(year, 0, 1);
+  const daysToAdd = (weekNumber - 1) * 7 - firstDayOfYear.getDay() + 1;
+  return new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysToAdd));
+}
+
+/**
+ * Returns the day of the week (1 = Monday, 2 = Tuesday, ..., 6 = Saturday, 0 = Sunday)
+ * for a given date string.
+ *
+ * @param date - The date to get the day of the week from
+ * @returns The day of the week (0-6)
+ */
+export function getDay(date: string) {
+  const day = dayjs(date).day();
+  return day === 0 ? 6 : day - 1;
+}
+
+/**
+ * Returns the start of the week (Monday) for a given date string.
+ *
+ * @param date - The date to get the start of the week from
+ * @returns A Date object representing the start of the week
+ */
+export function startOfWeek(date: string) {
+  return dayjs(date).subtract(getDay(date), 'day').startOf('day').toDate();
+}
+
+/**
+ * Returns the end of the week (Sunday) for a given date string.
+ *
+ * @param date - The date to get the end of the week from
+ * @returns A Date object representing the end of the week
+ */
+export function endOfWeek(date: string) {
+  return dayjs(date)
+    .add(6 - getDay(date), 'day')
+    .endOf('day')
+    .toDate();
+}
+
+/**
+ * Checks if a given date is within the week range of a specified value.
+ *
+ * @param date - The date to check
+ * @param value - The reference date (or null)
+ * @returns true if the date is within the week range, otherwise false
+ */
+export function isInWeekRange(date: string, value: string | null) {
+  return value
+    ? dayjs(date).isBefore(endOfWeek(value)) &&
+        dayjs(date).millisecond(1).isAfter(startOfWeek(value))
+    : false;
 }

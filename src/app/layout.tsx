@@ -1,8 +1,11 @@
 import Shell from '@/components/Shell';
+import '@/lib/dayjs';
 import { ColorSchemeScript, createTheme, MantineProvider } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
-import { ModalsProvider } from '@mantine/modals';
 import '@mantine/core/styles.css';
+import { DatesProvider } from '@mantine/dates';
+import '@mantine/dates/styles.css';
+import { ModalsProvider } from '@mantine/modals';
+import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -37,8 +40,10 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <MantineProvider theme={theme}>
           <ModalsProvider>
-            <Notifications />
-            <Shell>{children}</Shell>
+            <DatesProvider settings={{ locale: 'fr', firstDayOfWeek: 1, consistentWeeks: true }}>
+              <Notifications />
+              <Shell>{children}</Shell>
+            </DatesProvider>
           </ModalsProvider>
         </MantineProvider>
       </body>
