@@ -34,7 +34,6 @@ export default function CalendarTouchUp({
   async function handleGenerateCalendar(regenerate = false) {
     setLoading(true);
     const res = await generateWeekCalendar(forbiddenSectors, calendarOptions, regenerate);
-    console.log('res', res);
     setGenerated(true);
     setWeekCalendar?.(res);
     setLoading(false);
