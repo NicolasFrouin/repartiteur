@@ -37,8 +37,21 @@ const prisma =
             break;
           case 'delete':
           case 'deleteMany':
-            operation = operation === 'delete' ? 'update' : 'updateMany';
-            args = { ...(args || {}), data: { ...(args.data || {}), archived: true } };
+            let forceDelete = false;
+
+            if (args?.where?.OR?.length >= 2) {
+              const deleteChecks = [false, false];
+              for (const arg of args.where.OR) {
+                if (arg.archived !== undefined) {
+                  deleteChecks[Number(arg.archived)] = true;
+                }
+              }
+              forceDelete = deleteChecks.every((v) => v === true);
+            }
+            if (!forceDelete) {
+              operation = operation === 'delete' ? 'update' : 'updateMany';
+              args = { ...(args || {}), data: { ...(args.data || {}), archived: true } };
+            }
             break;
         }
         if (process.env.NODE_ENV !== 'production') {
