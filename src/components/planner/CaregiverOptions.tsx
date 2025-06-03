@@ -15,9 +15,12 @@ import {
   Table,
   Text,
 } from '@mantine/core';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
+
+const metadata: Metadata & { title: string } = { title: 'Planificateur - Options de soignants' };
 
 type CaregiversAndBranch = Caregiver & { branch: Branch };
 
@@ -116,6 +119,15 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
     }
     fetchData();
   }, [page, pageSize]);
+
+  useEffect(() => {
+    const oldTitle = document.title;
+    document.title = metadata.title;
+
+    return () => {
+      document.title = oldTitle;
+    };
+  }, []);
 
   return (
     <div>

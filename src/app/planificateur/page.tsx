@@ -1,29 +1,64 @@
 'use client';
 
+import CalendarOptions from '@/components/planner/CalendarOptions';
+import CalendarTouchUp from '@/components/planner/CalendarTouchUp';
 import CaregiverOptions from '@/components/planner/CaregiverOptions';
 import { Caregiver, Sector } from '@/generated/client';
-import { Button, Group, Stepper } from '@mantine/core';
-import { useState } from 'react';
+import { DEFAULT_CALENDAR_OPTIONS } from '@/lib/utils';
+import { FullAssignment, TCalendarOptions } from '@/types/utils';
+import { Box, Button, Group, Stepper } from '@mantine/core';
+import { SetStateAction, useState } from 'react';
 
 interface StepProps {
   label: string;
   component: React.ReactNode;
 }
 
+const GENERATE_CALENDAR_ON_STEP = 2;
+
 export default function Page() {
   const [active, setActive] = useState(0);
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, setLoading] = useState(false);
+  const [weekCalendar, setWeekCalendar] = useState<FullAssignment[] | null>(null);
+  const [calendarOptions, setCalendarOptions] =
+    useState<TCalendarOptions>(DEFAULT_CALENDAR_OPTIONS);
   const [forbiddenSectors, setForbiddenSectors] = useState<Record<Caregiver['id'], Sector['id'][]>>(
     {},
   );
 
+  function handleSetCalendarOptions(value: SetStateAction<TCalendarOptions>) {
+    setCalendarOptions(value);
+    setWeekCalendar([]);
+  }
+
   const STEPS: StepProps[] = [
     {
-      label: 'Choix des secteurs à ne pas attribuer',
+      label: 'Options de génération',
+      component: (
+        <CalendarOptions
+          calendarOptions={calendarOptions}
+          setCalendarOptions={handleSetCalendarOptions}
+        />
+      ),
+    },
+    {
+      label: 'Restriction de secteurs',
       component: (
         <CaregiverOptions
           forbiddenSectors={forbiddenSectors}
           setForbiddenSectors={setForbiddenSectors}
+        />
+      ),
+    },
+    {
+      label: 'Génération / Modifications',
+      component: (
+        <CalendarTouchUp
+          calendarOptions={calendarOptions}
+          forbiddenSectors={forbiddenSectors}
+          weekCalendar={weekCalendar}
+          setWeekCalendar={setWeekCalendar}
         />
       ),
     },
@@ -32,21 +67,49 @@ export default function Page() {
   const nextStep = () => setActive((prev) => (prev < STEPS.length ? prev + 1 : prev));
   const prevStep = () => setActive((prev) => (prev > 0 ? prev - 1 : prev));
 
+  function renderNextStepButton(): React.ReactNode {
+    switch (active) {
+      case GENERATE_CALENDAR_ON_STEP - 1:
+        return 'Voir le calendrier';
+      case GENERATE_CALENDAR_ON_STEP:
+        return 'Confirmer le calendrier';
+      case STEPS.length:
+        return 'Terminer';
+      default:
+        return 'Suivant';
+    }
+  }
+
   return (
-    <div>
+    <Box>
       <Stepper active={active} onStepClick={setActive} allowNextStepsSelect={false}>
         {STEPS.map((step, i) => (
           <Stepper.Step key={i} label={step.label}>
+            <Group justify={'center'} mb={'md'}>
+              <Button
+                onClick={prevStep}
+                loading={loading}
+                variant={'outline'}
+                disabled={active === 0}
+              >
+                Précédent
+              </Button>
+              <Button onClick={nextStep} loading={loading} disabled={active === STEPS.length}>
+                {renderNextStepButton()}
+              </Button>
+            </Group>
             {step.component}
           </Stepper.Step>
         ))}
       </Stepper>
-      <Group justify={'center'} mt='xl'>
-        <Button onClick={prevStep} variant={'outline'} disabled={active === 0}>
+      <Group justify={'center'} mt='lg'>
+        <Button onClick={prevStep} loading={loading} variant={'outline'} disabled={active === 0}>
           Précédent
         </Button>
-        <Button onClick={nextStep}>Suivant</Button>
+        <Button onClick={nextStep} loading={loading} disabled={active === STEPS.length}>
+          {renderNextStepButton()}
+        </Button>
       </Group>
-    </div>
+    </Box>
   );
 }
