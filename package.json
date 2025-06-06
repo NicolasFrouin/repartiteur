@@ -17,27 +17,29 @@
     "seed": "tsx src/prisma/seed/index.ts"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.9.1",
     "@mantine/core": "^8.0.1",
     "@mantine/dates": "^8.0.1",
     "@mantine/form": "^8.0.1",
     "@mantine/hooks": "^8.0.1",
     "@mantine/modals": "^8.0.1",
     "@mantine/notifications": "^8.0.1",
-    "@prisma/client": "^6.8.2",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "dotenv-cli": "^8.0.0",
     "next": "^15.3.2",
+    "next-auth": "^5.0.0-beta.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "slugify": "^1.6.6",
     "tailwind-merge": "^3.3.0",
-    "zod": "^3.24.4"
+    "zod": "^3.25.51"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@prisma/client": "^6.9.0",
     "@tailwindcss/postcss": "^4.1.6",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^22.15.17",
@@ -53,7 +55,7 @@
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "prisma": "^6.8.2",
+    "prisma": "^6.9.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
     "typescript": "^5"

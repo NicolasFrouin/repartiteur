@@ -78,7 +78,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props
     bigWeekType: z.enum([CaregiverBigWeekType.EVEN, CaregiverBigWeekType.ODD]),
     color: z
       .string({ coerce: true })
-      .startsWith('#', 'Seuls les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .startsWith('#', 'Seules les couleurs au format hexadécimal sont acceptées (#6c0277)')
       .optional()
       .or(z.literal('')),
     branchId: z.string().min(1, 'Branche requise'),
