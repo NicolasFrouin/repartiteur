@@ -1,5 +1,6 @@
 'use client';
 
+import { HEADER_HEIGHT } from '@/lib/utils';
 import {
   ActionIcon,
   Affix,
@@ -15,26 +16,30 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowUp } from 'react-icons/fa6';
 import Nav from './Nav';
-import { HEADER_HEIGHT } from '@/lib/utils';
+import { Session } from 'next-auth';
 
-export default function Shell({ children }: React.PropsWithChildren) {
+interface Props extends React.PropsWithChildren {
+  session: Session | null;
+}
+
+export default function Shell({ session, children }: Props) {
   const [opened, { toggle, close }] = useDisclosure();
   const [scroll, scrollTo] = useWindowScroll();
 
   return (
     <AppShell
       header={{ height: HEADER_HEIGHT }}
-      navbar={{ width: 2, breakpoint: 'sm', collapsed: { desktop: true, mobile: !opened } }}
+      navbar={{ width: 2, breakpoint: 'md', collapsed: { desktop: true, mobile: !opened } }}
       padding={'md'}
       styles={{ root: { '--header-height': `${HEADER_HEIGHT}px` } }}
     >
       <AppShell.Header>
         <Group h={'100%'} px={'md'}>
-          <Burger opened={opened} onClick={toggle} hiddenFrom={'sm'} size={'sm'} />
+          <Burger opened={opened} onClick={toggle} hiddenFrom={'md'} size={'sm'} />
           <Group
             align={'center'}
             style={{ flex: 1 }}
-            className={'!justify-center md:!justify-between'}
+            className={'!justify-center lg:!justify-between'}
           >
             <Link href={'/'} className={'flex items-center'}>
               <AspectRatio ratio={815 / 161}>
@@ -48,15 +53,15 @@ export default function Shell({ children }: React.PropsWithChildren) {
                 />
               </AspectRatio>
             </Link>
-            <Group ml={'xl'} gap={0} visibleFrom={'sm'}>
-              <Nav close={close} />
+            <Group ml={'xl'} gap={0} visibleFrom={'md'}>
+              <Nav session={session} close={close} />
             </Group>
           </Group>
-          <div className='w-7 md:hidden' />
+          <div className='w-7 lg:hidden' />
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'sm'}>
-        <Nav close={close} />
+      <AppShell.Navbar py={'md'} px={4} w={'100vw'} hiddenFrom={'md'}>
+        <Nav session={session} close={close} mobile />
       </AppShell.Navbar>
       <AppShell.Main className='flex flex-col'>
         {children}
