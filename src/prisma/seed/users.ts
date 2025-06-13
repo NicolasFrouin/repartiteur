@@ -1,14 +1,31 @@
-import { PrismaClient, User } from '@/generated/client';
+import { PrismaClient, Role, User } from '@/generated/client';
 import { NonRequired } from '@/types/utils';
 import { hashSync } from 'bcrypt';
 
 export const users: NonRequired<User>[] = [
   {
-    email: 'admin@example.com',
-    name: 'admin',
+    email: 'user@app.com',
+    name: 'user',
+    role: Role.USER,
     emailVerified: null,
     image: null,
-    password: hashSync('pass', 12),
+    password: hashSync('pistache', 12),
+  },
+  {
+    email: 'admin@app.com',
+    name: 'admin',
+    role: Role.ADMIN,
+    emailVerified: null,
+    image: null,
+    password: hashSync('pistache', 12),
+  },
+  {
+    email: 'superadmin@app.com',
+    name: 'superadmin',
+    role: Role.SUPERADMIN,
+    emailVerified: null,
+    image: null,
+    password: hashSync('pistache', 12),
   },
 ];
 

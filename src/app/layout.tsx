@@ -36,6 +36,10 @@ const theme = createTheme({
 export default async function RootLayout({ children }: React.PropsWithChildren) {
   const session = await auth();
 
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Session :', session);
+  }
+
   return (
     <html lang='fr' suppressHydrationWarning>
       <head>

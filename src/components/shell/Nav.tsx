@@ -25,6 +25,7 @@ import {
   FaMapMarkerAlt,
   FaSignInAlt,
   FaSignOutAlt,
+  FaUser,
   FaUsersCog,
 } from 'react-icons/fa';
 import classes from './Nav.module.css';
@@ -51,6 +52,7 @@ const connectedLinks: ILink[] = [
       { link: '/admin/branches', label: 'Branches', type: 'link', icon: FaBuilding },
       { link: '/admin/secteurs', label: 'Secteurs', type: 'link', icon: FaMapMarkerAlt },
       { link: '/admin/missions', label: 'Missions', type: 'link', icon: FaBriefcase },
+      { link: '/admin/utilisateurs', label: 'Utilisateurs', type: 'link', icon: FaUser },
     ],
   },
   { link: '#', label: 'Déconnexion', type: 'logout', divide: true, icon: FaSignOutAlt },

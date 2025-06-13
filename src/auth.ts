@@ -22,12 +22,8 @@ export const providers: Provider[] = [
       password: { label: 'Mot de passe', type: 'password', placeholder: 'M0n5uP3rM0tD3p45s3' },
     },
     async authorize(credentials) {
-      console.log('CredentialsProvider authorize called with:', credentials);
-
       const signInParseResult = signInSchema.safeParse(credentials);
-
       if (!signInParseResult.success) {
-        console.log('CredentialsSignin !signInParseResult.success');
         throw new CredentialsSignin(
           signInParseResult.error.errors.map((e) => e.message).join(', '),
         );
@@ -37,23 +33,16 @@ export const providers: Provider[] = [
 
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
-        console.log('CredentialsSignin !user');
         throw new CredentialsSignin('Identifiants incorrects');
       }
-
       if (!user.password) {
-        console.log('CredentialsSignin !user.password');
         throw new AuthError('Connexion OAuth requise');
       }
 
       const isValid = compareSync(password, user.password);
-
       if (!isValid) {
-        console.log('CredentialsSignin !isValid');
         throw new CredentialsSignin('Identifiants incorrects');
       }
-
-      console.log('User authenticated successfully:', user);
 
       return user;
     },
@@ -92,27 +81,29 @@ export const providers: Provider[] = [
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
-  pages: { signIn: '/login' /* , signOut: '/logout' */ },
+  pages: { signIn: '/login' },
   providers,
   callbacks: {
-    async jwt({ token, user /* , account, profile, session, trigger */ }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name || '';
+        // @ts-expect-error ---
+        token.role = user.role;
       }
 
       return token;
     },
-    async session({ session, token, user /* , newSession, trigger */ }) {
+    async session({ session, token }) {
       return {
         ...session,
         user: {
           ...session.user,
           id: token.id as string,
-          email: token.email as string,
-          name: token.name as string,
-          image: user?.image || null,
+          email: token.email,
+          name: token.name,
+          role: token.role as User['role'],
         },
       };
     },
