@@ -89,7 +89,9 @@ export function getDate(date: Date = new Date()) {
  * @returns The name of the day in French
  */
 export function getWeekDay(day: number): string {
-  return dayjs().weekday(day).format('dddd');
+  return dayjs()
+    .weekday(day + 1)
+    .format('dddd');
 }
 
 /**

@@ -16,10 +16,11 @@ import {
   TextInput,
   useCombobox,
 } from '@mantine/core';
-import { useForm, zodResolver } from '@mantine/form';
+import { useForm } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { zodResolver } from 'mantine-form-zod-resolver';
 import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';

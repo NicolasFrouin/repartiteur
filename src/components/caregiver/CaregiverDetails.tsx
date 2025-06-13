@@ -20,10 +20,11 @@ import {
   TextInput,
   useCombobox,
 } from '@mantine/core';
-import { useForm, zodResolver } from '@mantine/form';
+import { useForm } from '@mantine/form';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { zodResolver } from 'mantine-form-zod-resolver';
 import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -78,7 +79,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props
     bigWeekType: z.enum([CaregiverBigWeekType.EVEN, CaregiverBigWeekType.ODD]),
     color: z
       .string({ coerce: true })
-      .startsWith('#', 'Seuls les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .startsWith('#', 'Seules les couleurs au format hexadécimal sont acceptées (#6c0277)')
       .optional()
       .or(z.literal('')),
     branchId: z.string().min(1, 'Branche requise'),
