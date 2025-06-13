@@ -1,5 +1,10 @@
 import { PrismaClient, PrismaPromise } from '@/generated/client';
 
+const LOG =
+  process.env.NODE_ENV === 'development' &&
+  process.env.PRISMA_LOG &&
+  process.env.PRISMA_LOG !== 'none';
+
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 type PrismaExcludedKeys = `$${string}` | keyof object | symbol;
@@ -16,7 +21,7 @@ const prisma =
         query,
         model,
       }): Promise<PrismaPromise<unknown>> => {
-        if (process.env.NODE_ENV !== 'production') {
+        if (LOG) {
           console.log(`[PRISMA] ${model}::${operation}`);
           console.log(`[PRISMA] Args before : ${JSON.stringify(args)}`);
         }
@@ -54,7 +59,7 @@ const prisma =
             }
             break;
         }
-        if (process.env.NODE_ENV !== 'production') {
+        if (LOG) {
           console.log(`[PRISMA] Args after : ${JSON.stringify(args)}`);
         }
         if (operation !== ogOperation) {

@@ -1,4 +1,5 @@
-import Shell from '@/components/Shell';
+import { auth } from '@/auth';
+import Shell from '@/components/shell/Shell';
 import '@/lib/dayjs';
 import { ColorSchemeScript, createTheme, MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
@@ -8,6 +9,7 @@ import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import type { Metadata } from 'next';
+import { SessionProvider } from 'next-auth/react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
@@ -31,21 +33,25 @@ const theme = createTheme({
   primaryColor: 'blue',
 });
 
-export default function RootLayout({ children }: React.PropsWithChildren) {
+export default async function RootLayout({ children }: React.PropsWithChildren) {
+  const session = await auth();
+
   return (
     <html lang='fr' suppressHydrationWarning>
       <head>
         <ColorSchemeScript forceColorScheme='light' />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <MantineProvider theme={theme}>
-          <ModalsProvider>
-            <DatesProvider settings={{ locale: 'fr', firstDayOfWeek: 1, consistentWeeks: true }}>
-              <Notifications />
-              <Shell>{children}</Shell>
-            </DatesProvider>
-          </ModalsProvider>
-        </MantineProvider>
+        <SessionProvider session={session} refetchInterval={60}>
+          <MantineProvider theme={theme}>
+            <ModalsProvider>
+              <DatesProvider settings={{ locale: 'fr', firstDayOfWeek: 1, consistentWeeks: true }}>
+                <Notifications />
+                <Shell session={session}>{children}</Shell>
+              </DatesProvider>
+            </ModalsProvider>
+          </MantineProvider>
+        </SessionProvider>
       </body>
     </html>
   );
