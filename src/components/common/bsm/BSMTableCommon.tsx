@@ -1,6 +1,15 @@
 'use client';
 
-import { Box, Flex, Group, LoadingOverlay, Pagination, Table, TableProps } from '@mantine/core';
+import {
+  Box,
+  Flex,
+  Group,
+  LoadingOverlay,
+  Pagination,
+  ScrollArea,
+  Table,
+  TableProps,
+} from '@mantine/core';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -32,7 +41,9 @@ export default function BSMTableCommon({ tableData, fetcher, total = 0 }: Props)
     <Flex direction={'column'} gap={'md'}>
       <Box pos={'relative'}>
         <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
-        <Table highlightOnHover data={tableData} />
+        <ScrollArea type={'auto'}>
+          <Table highlightOnHover data={tableData} />
+        </ScrollArea>
       </Box>
       <Group justify={'center'} mt={'md'}>
         <Pagination
