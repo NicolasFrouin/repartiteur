@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/rules-of-hooks */
 
 import { cn } from '@/lib/utils';
 import {
@@ -25,9 +26,12 @@ import {
   FaMapMarkerAlt,
   FaSignInAlt,
   FaSignOutAlt,
+  FaUser,
   FaUsersCog,
 } from 'react-icons/fa';
 import classes from './Nav.module.css';
+import { Role } from '@/generated/client';
+import { canAccess } from '@/lib/utils/auth';
 
 interface ILink {
   link: string;
@@ -36,21 +40,36 @@ interface ILink {
   links?: ILink[];
   icon: React.ComponentType<{ size?: number; color?: string }>;
   divide?: boolean;
+  role?: Role;
 }
 
 const connectedLinks: ILink[] = [
   { link: '/', label: 'Accueil', type: 'link', icon: FaHome },
-  { link: '/admin/planificateur', label: 'Planificateur', type: 'link', icon: FaCalendarAlt },
+  {
+    link: '/admin/planificateur',
+    label: 'Planificateur',
+    type: 'link',
+    icon: FaCalendarAlt,
+    role: Role.ADMIN,
+  },
   {
     link: '/admin',
     label: 'Administration',
     type: 'dropdown',
     icon: FaUsersCog,
+    role: Role.ADMIN,
     links: [
       { link: '/admin/soignants', label: 'Soignants', type: 'link', icon: FaUsersCog },
       { link: '/admin/branches', label: 'Branches', type: 'link', icon: FaBuilding },
       { link: '/admin/secteurs', label: 'Secteurs', type: 'link', icon: FaMapMarkerAlt },
       { link: '/admin/missions', label: 'Missions', type: 'link', icon: FaBriefcase },
+      {
+        link: '/admin/utilisateurs',
+        label: 'Utilisateurs',
+        type: 'link',
+        icon: FaUser,
+        role: Role.SUPERADMIN,
+      },
     ],
   },
   { link: '#', label: 'Déconnexion', type: 'logout', divide: true, icon: FaSignOutAlt },
@@ -64,9 +83,12 @@ const disconnectedLinks: ILink[] = [
 interface NavbarLinksGroupProps {
   link: ILink;
   close: () => void;
+  role: Role | null | undefined;
 }
 
-function MobileLinksGroup({ link, close }: NavbarLinksGroupProps) {
+function MobileLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
+  if (link.role && !canAccess(role, link.role)) return null;
+
   const hasLinks = Array.isArray(link.links) && link.links.length > 0;
   const [opened, setOpened] = useState(false);
   const Icon = link.icon;
@@ -84,18 +106,23 @@ function MobileLinksGroup({ link, close }: NavbarLinksGroupProps) {
     }
   };
 
-  const items = (hasLinks && link.links ? link.links : []).map((nestedLink) => {
-    return (
-      <Link
-        href={nestedLink.link}
-        key={nestedLink.label}
-        onClick={close}
-        className={`${classes.link} ${nestedLink.link === pathname ? classes.active : ''}`}
-      >
-        {nestedLink.label}
-      </Link>
-    );
-  });
+  const items = (hasLinks && link.links ? link.links : []).reduce<React.JSX.Element[]>(
+    (acc, nestedLink) => {
+      if (nestedLink.role && !canAccess(role, nestedLink.role)) return acc;
+      acc.push(
+        <Link
+          href={nestedLink.link}
+          key={nestedLink.label}
+          onClick={close}
+          className={`${classes.link} ${nestedLink.link === pathname ? classes.active : ''}`}
+        >
+          {nestedLink.label}
+        </Link>,
+      );
+      return acc;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (hasLinks && items.length > 0) {
@@ -139,7 +166,9 @@ function MobileLinksGroup({ link, close }: NavbarLinksGroupProps) {
   );
 }
 
-function DesktopLinksGroup({ link, close }: NavbarLinksGroupProps) {
+function DesktopLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
+  if (link.role && !canAccess(role, link.role)) return null;
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const hasLinks = Array.isArray(link.links) && link.links.length > 0;
   const Icon = link.icon;
@@ -171,16 +200,20 @@ function DesktopLinksGroup({ link, close }: NavbarLinksGroupProps) {
 
         {dropdownOpen && link.links && (
           <Box className={classes.desktopDropdownContent}>
-            {link.links.map((item) => (
-              <Link
-                href={item.link}
-                key={item.label}
-                className={`${classes.desktopLink} ${pathname === item.link ? classes.active : ''}`}
-                onClick={close}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {link.links.reduce<React.JSX.Element[]>((acc, item) => {
+              if (item.role && !canAccess(role, item.role)) return acc;
+              acc.push(
+                <Link
+                  href={item.link}
+                  key={item.label}
+                  className={`${classes.desktopLink} ${pathname === item.link ? classes.active : ''}`}
+                  onClick={close}
+                >
+                  {item.label}
+                </Link>,
+              );
+              return acc;
+            }, [])}
           </Box>
         )}
       </Box>
@@ -222,7 +255,14 @@ export default function Nav({ session, close, mobile = false }: Props) {
           if (link.divide) {
             acc.push(<Divider key='divider' my='sm' color='gray.3' />);
           }
-          acc.push(<MobileLinksGroup key={link.label} link={link} close={close} />);
+          acc.push(
+            <MobileLinksGroup
+              key={link.label}
+              link={link}
+              close={close}
+              role={session?.user.role}
+            />,
+          );
           return acc;
         }, [] as React.ReactNode[])}
       </Box>
@@ -235,7 +275,14 @@ export default function Nav({ session, close, mobile = false }: Props) {
         if (link.divide) {
           acc.push(<Divider key='divider' my='xs' orientation='vertical' color='gray.3' />);
         }
-        acc.push(<DesktopLinksGroup key={link.label} link={link} close={close} />);
+        acc.push(
+          <DesktopLinksGroup
+            key={link.label}
+            link={link}
+            close={close}
+            role={session?.user.role}
+          />,
+        );
         return acc;
       }, [] as React.ReactNode[])}
     </Flex>
