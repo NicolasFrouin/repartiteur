@@ -11,6 +11,23 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params;
+  const branch = await prisma.branch.findUnique({ where: { id } });
+
+  if (!branch) {
+    return {
+      title: 'Branche introuvable',
+      description: 'Aucune branche trouvée avec cet identifiant.',
+    };
+  }
+
+  return {
+    title: `Détails de la branche - ${branch.name}`,
+    description: `Informations sur la branche ${branch.name}`,
+  };
+}
+
 export default async function Page({ params }: Props) {
   const session = await auth();
 

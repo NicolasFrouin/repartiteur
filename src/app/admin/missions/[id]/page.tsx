@@ -12,6 +12,23 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params;
+  const mission = await prisma.mission.findUnique({ where: { id } });
+
+  if (!mission) {
+    return {
+      title: 'Mission introuvable',
+      description: 'Aucune mission trouvée avec cet identifiant.',
+    };
+  }
+
+  return {
+    title: `Détails de la mission - ${mission.name}`,
+    description: `Informations sur la mission ${mission.name}`,
+  };
+}
+
 export default async function Page({ params }: Props) {
   const session = await auth();
 

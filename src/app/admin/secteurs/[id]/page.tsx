@@ -11,6 +11,23 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { id } = await params;
+  const sector = await prisma.sector.findUnique({ where: { id } });
+
+  if (!sector) {
+    return {
+      title: 'Secteur introuvable',
+      description: 'Aucun secteur trouvé avec cet identifiant.',
+    };
+  }
+
+  return {
+    title: `Détails du secteur - ${sector.name}`,
+    description: `Informations sur le secteur ${sector.name}`,
+  };
+}
+
 export default async function Page({ params }: Props) {
   const session = await auth();
 
