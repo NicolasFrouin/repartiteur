@@ -1,8 +1,6 @@
 import { auth } from '@/auth';
 import BranchDetails from '@/components/bsm/branch/BranchDetails';
-import { Role } from '@/generated/client';
 import prisma from '@/lib/prisma';
-import { canAccess } from '@/lib/utils/auth';
 import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -30,10 +28,6 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function Page({ params }: Props) {
   const session = await auth();
-
-  if (!canAccess(session?.user?.role, Role.ADMIN)) {
-    return notFound();
-  }
 
   const { id } = await params;
   const branch = await prisma.branch.findUnique({ where: { id }, include: { sectors: true } });

@@ -1,5 +1,5 @@
 import SectorTable from '@/components/bsm/sector/SectorTable';
-import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 
 export default function Page() {
@@ -12,9 +12,9 @@ export default function Page() {
           </Anchor>
           <Text>Secteurs</Text>
         </Breadcrumbs>
-        {/* <Button component={Link} href={'/admin/secteurs/nouveau'} variant='outline' color='blue'>
+        <Button component={Link} href={'/admin/secteurs/nouveau'} variant='outline' color='blue'>
           Créer un secteur
-        </Button> */}
+        </Button>
       </Group>
       <SectorTable />
     </Box>

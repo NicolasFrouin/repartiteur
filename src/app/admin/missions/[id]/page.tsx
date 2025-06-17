@@ -1,8 +1,6 @@
 import { auth } from '@/auth';
 import MissionDetails from '@/components/bsm/mission/MissionDetails';
-import { Role } from '@/generated/client';
 import prisma from '@/lib/prisma';
-import { canAccess } from '@/lib/utils/auth';
 import { FullMission } from '@/types/utils';
 import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
 import Link from 'next/link';
@@ -31,10 +29,6 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function Page({ params }: Props) {
   const session = await auth();
-
-  if (!canAccess(session?.user?.role, Role.ADMIN)) {
-    return notFound();
-  }
 
   const { id } = await params;
   const mission: FullMission | null = await prisma.mission.findUnique({

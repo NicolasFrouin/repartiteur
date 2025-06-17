@@ -1,5 +1,5 @@
 import MissionTable from '@/components/bsm/mission/MissionTable';
-import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 
 export default function Page() {
@@ -12,9 +12,9 @@ export default function Page() {
           </Anchor>
           <Text>Missions</Text>
         </Breadcrumbs>
-        {/* <Button component={Link} href={'/admin/missions/nouveau'} variant='outline' color='blue'>
+        <Button component={Link} href={'/admin/missions/nouveau'} variant='outline' color='blue'>
           Créer une mission
-        </Button> */}
+        </Button>
       </Group>
       <MissionTable />
     </Box>

@@ -1,12 +1,12 @@
 import { auth } from '@/auth';
-import CaregiverDetails from '@/components/caregiver/CaregiverDetails';
+import BranchDetails from '@/components/bsm/branch/BranchDetails';
 import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Nouveau soignant',
-  description: 'Créer un nouveau soignant',
+  title: 'Nouvelle branche',
+  description: 'Créer une nouvelle branche',
 };
 
 export default async function Page() {
@@ -19,14 +19,14 @@ export default async function Page() {
           <Anchor component={Link} href={'/admin'}>
             Administration
           </Anchor>
-          <Anchor component={Link} href={'/admin/soignants'}>
-            Soignants
+          <Anchor component={Link} href={'/admin/branches'}>
+            Branches
           </Anchor>
-          <Text>Nouveau soignant</Text>
+          <Text>Nouvelle branche</Text>
         </Breadcrumbs>
       </Group>
       <Box className='md:px-[20%]'>
-        <CaregiverDetails userId={session!.user.id} />
+        <BranchDetails userId={session!.user.id} />
       </Box>
     </Box>
   );

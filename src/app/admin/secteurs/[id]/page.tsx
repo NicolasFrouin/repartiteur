@@ -1,8 +1,6 @@
 import { auth } from '@/auth';
 import SectorDetails from '@/components/bsm/sector/SectorDetails';
-import { Role } from '@/generated/client';
 import prisma from '@/lib/prisma';
-import { canAccess } from '@/lib/utils/auth';
 import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -30,10 +28,6 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function Page({ params }: Props) {
   const session = await auth();
-
-  if (!canAccess(session?.user?.role, Role.ADMIN)) {
-    return notFound();
-  }
 
   const { id } = await params;
   const sector = await prisma.sector.findUnique({

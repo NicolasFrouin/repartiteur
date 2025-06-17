@@ -11,17 +11,29 @@ import { redirect } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 
+const defaultBranch = { id: '', name: '', color: '', active: true } as Branch;
+
 interface Props {
-  branch: Branch;
+  branch?: Branch;
   userId: string;
 }
 
-export default function BranchDetails({ branch, userId }: Props) {
+export default function BranchDetails({ branch = defaultBranch, userId }: Props) {
+  const isCreating = !Boolean(branch.id);
+
   const [loading, setLoading] = useState(false);
-  const [readOnly, setReadonly] = useState(true);
+  const [readOnly, setReadonly] = useState(!isCreating);
   const [branchData, setBranchData] = useState<Branch>(branch);
 
-  const schema = z.object({});
+  const schema = z.object({
+    name: z.string().min(1, 'Nom requis'),
+    color: z
+      .string({ coerce: true })
+      .startsWith('#', 'Seules les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .optional()
+      .or(z.literal('')),
+    active: z.boolean(),
+  });
 
   const form = useForm({
     initialValues: branchData,
@@ -51,19 +63,56 @@ export default function BranchDetails({ branch, userId }: Props) {
     form.resetDirty();
   }
 
-  async function handleSubmit(values: typeof form.values) {
-    setLoading(true);
-    const updateRes = await fetchBranch(
+  async function handleCreate(values: typeof form.values) {
+    const createRes: Branch | null = await fetchBranch(
+      'create',
+      [
+        {
+          data: {
+            name: values.name,
+            color: values.color,
+            active: values.active,
+            createdById: userId,
+            updatedById: userId,
+          },
+        },
+      ],
+      '/',
+    ).catch(() => null);
+
+    if (!createRes) {
+      notifications.show({
+        title: 'Erreur',
+        message: 'Erreur lors de la création de la branche',
+        color: 'red',
+        autoClose: 4e3,
+      });
+    } else {
+      setBranchData(createRes);
+      form.setValues(createRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Création de branche',
+        message: 'Branche créée avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
+      redirect(`/admin/branches/${createRes.id}`);
+    }
+  }
+
+  async function handleUpdate(values: typeof form.values) {
+    const updateRes: Branch | null = await fetchBranch(
       'update',
       [
         {
-          where: { id: branch.id },
           data: {
             name: values.name,
             color: values.color,
             active: values.active,
             updatedById: userId,
           },
+          where: { id: branchData.id },
         },
       ],
       '/',
@@ -76,17 +125,29 @@ export default function BranchDetails({ branch, userId }: Props) {
         color: 'red',
         autoClose: 4e3,
       });
+    } else {
+      setBranchData(updateRes);
+      form.setValues(updateRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Modification de la branche',
+        message: 'Branche modifiée avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
     }
     setReadonly(true);
-    setBranchData(updateRes);
-    form.setValues(updateRes);
-    form.resetDirty();
-    notifications.show({
-      title: 'Modification de la branche',
-      message: 'Branche modifiée avec succès',
-      color: 'green',
-      autoClose: 4e3,
-    });
+  }
+
+  async function handleSubmit(values: ReturnType<(typeof form)['getValues']>) {
+    if (readOnly) return;
+
+    setLoading(true);
+    if (isCreating) {
+      await handleCreate(values);
+    } else {
+      await handleUpdate(values);
+    }
     setLoading(false);
   }
 
@@ -99,7 +160,7 @@ export default function BranchDetails({ branch, userId }: Props) {
       children: <Text>Êtes-vous sûr de vouloir supprimer cette branche ?</Text>,
       async onConfirm() {
         setLoading(true);
-        const deleteRes = await fetchBranch('delete', [{ where: { id: branch.id } }], '/');
+        const deleteRes = await fetchBranch('delete', [{ where: { id: branchData.id } }], '/');
         if (!deleteRes) {
           notifications.show({
             title: 'Erreur',
@@ -116,7 +177,7 @@ export default function BranchDetails({ branch, userId }: Props) {
           });
         }
         setLoading(false);
-        redirect('/branches');
+        redirect('/');
       },
     });
   }
@@ -146,14 +207,16 @@ export default function BranchDetails({ branch, userId }: Props) {
             </Button>
           ) : (
             <>
-              <Button type='button' color='red' onClick={handleDelete}>
-                Supprimer
-              </Button>
+              {!isCreating && (
+                <Button type='button' color='red' onClick={handleDelete}>
+                  Supprimer
+                </Button>
+              )}
               <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>
-                Enregistrer
+                {isCreating ? 'Créer' : 'Enregistrer'}
               </Button>
             </>
           )}

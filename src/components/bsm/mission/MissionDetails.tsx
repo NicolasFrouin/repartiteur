@@ -26,17 +26,37 @@ import { useState } from 'react';
 import { z } from 'zod';
 
 function formatSectorName(sector: FullMission['sector']) {
+  if (!sector?.name || !sector.branch?.name) {
+    return '';
+  }
   return `${sector.name} (${sector.branch.name})`;
 }
 
+const defaultMission = {
+  id: '',
+  name: '',
+  color: '',
+  active: true,
+  sectorId: '',
+  sector: {
+    id: '',
+    name: '',
+    color: '',
+    active: true,
+    branch: { id: '', name: '', color: '', active: true },
+  },
+} as FullMission;
+
 interface Props {
-  mission: FullMission;
+  mission?: FullMission;
   userId: string;
 }
 
-export default function MissionDetails({ mission, userId }: Props) {
+export default function MissionDetails({ mission = defaultMission, userId }: Props) {
+  const isCreating = !Boolean(mission.id);
+
   const [loading, setLoading] = useState(false);
-  const [readOnly, setReadonly] = useState(true);
+  const [readOnly, setReadonly] = useState(!isCreating);
   const [missionData, setMissionData] = useState<FullMission>(mission);
   const [sectorsData, setSectorsData] = useState<FullMission['sector'][]>([]);
   const [sectorsLoading, setSectorsLoading] = useState(false);
@@ -55,7 +75,11 @@ export default function MissionDetails({ mission, userId }: Props) {
 
   const schema = z.object({
     name: z.string().min(1, { message: 'Nom requis' }),
-    color: z.string(),
+    color: z
+      .string({ coerce: true })
+      .startsWith('#', 'Seules les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .optional()
+      .or(z.literal('')),
     active: z.boolean(),
     sectorId: z.string().min(1, { message: 'Secteur requis' }),
   });
@@ -112,13 +136,64 @@ export default function MissionDetails({ mission, userId }: Props) {
     setComboValue(mission.sector);
   }
 
+  async function handleCreate(values: typeof form.values) {
+    const createRes: FullMission | null = await fetchMission(
+      'create',
+      [
+        {
+          data: {
+            name: values.name,
+            color: values.color,
+            active: values.active,
+            sector: { connect: { id: comboValue?.id } },
+            createdBy: { connect: { id: userId } },
+            updatedBy: { connect: { id: userId } },
+          },
+          include: { sector: { include: { branch: true } } },
+        },
+      ],
+      '/',
+    ).catch(() => null);
+
+    if (!createRes) {
+      notifications.show({
+        title: 'Erreur',
+        message: 'Erreur lors de la création de la mission',
+        color: 'red',
+        autoClose: 4e3,
+      });
+    } else {
+      setMissionData(createRes);
+      form.setValues(createRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Création de mission',
+        message: 'Mission créée avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
+      redirect(`/admin/missions/${createRes.id}`);
+    }
+  }
+
   async function handleSubmit(values: typeof form.values) {
+    if (readOnly) return;
+
     setLoading(true);
+    if (isCreating) {
+      await handleCreate(values);
+    } else {
+      await handleUpdate(values);
+    }
+    setLoading(false);
+  }
+
+  async function handleUpdate(values: typeof form.values) {
     const updateRes: FullMission | null = await fetchMission(
       'update',
       [
         {
-          where: { id: mission.id },
+          where: { id: missionData.id },
           data: {
             name: values.name,
             color: values.color,
@@ -126,7 +201,7 @@ export default function MissionDetails({ mission, userId }: Props) {
             sector: { connect: { id: comboValue?.id } },
             updatedBy: { connect: { id: userId } },
           },
-          select: { sector: true },
+          include: { sector: { include: { branch: true } } },
         },
       ],
       '/',
@@ -139,19 +214,18 @@ export default function MissionDetails({ mission, userId }: Props) {
         color: 'red',
         autoClose: 4e3,
       });
-      return;
+    } else {
+      setMissionData(updateRes);
+      form.setValues(updateRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Modification de la mission',
+        message: 'Mission modifiée avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
     }
     setReadonly(true);
-    setMissionData(updateRes);
-    form.setValues(updateRes);
-    form.resetDirty();
-    notifications.show({
-      title: 'Modification de la mission',
-      message: 'Mission modifiée avec succès',
-      color: 'green',
-      autoClose: 4e3,
-    });
-    setLoading(false);
   }
 
   const sectorSearchChange = useDebouncedCallback(handleSectorSearch, 300);
@@ -163,7 +237,7 @@ export default function MissionDetails({ mission, userId }: Props) {
   ));
 
   function handleComboOptionSubmit(val: string) {
-    const selectedSector = sectorsData.find((sector) => sector.id === val) || mission.sector;
+    const selectedSector = sectorsData.find((sector) => sector.id === val) || missionData.sector;
     setComboValue(selectedSector);
     setComboSearch(formatSectorName(selectedSector));
     form.setFieldValue('sectorId', selectedSector?.id);
@@ -186,7 +260,7 @@ export default function MissionDetails({ mission, userId }: Props) {
       children: <Text>Êtes-vous sûr de vouloir supprimer cette mission ?</Text>,
       async onConfirm() {
         setLoading(true);
-        const deleteRes = await fetchMission('delete', [{ where: { id: mission.id } }], '/');
+        const deleteRes = await fetchMission('delete', [{ where: { id: missionData.id } }], '/');
         if (!deleteRes) {
           notifications.show({
             title: 'Erreur',
@@ -268,14 +342,16 @@ export default function MissionDetails({ mission, userId }: Props) {
             </Button>
           ) : (
             <>
-              <Button type='button' color='red' onClick={handleDelete}>
-                Supprimer
-              </Button>
+              {!isCreating && (
+                <Button type='button' color='red' onClick={handleDelete}>
+                  Supprimer
+                </Button>
+              )}
               <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>
-                Enregistrer
+                {isCreating ? 'Créer' : 'Enregistrer'}
               </Button>
             </>
           )}

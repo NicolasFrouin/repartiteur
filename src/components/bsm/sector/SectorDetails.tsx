@@ -29,14 +29,25 @@ function formatBranchName(branch: FullSector['branch']) {
   return branch.name || '';
 }
 
+const defaultSector = {
+  id: '',
+  name: '',
+  color: '',
+  active: true,
+  branchId: '',
+  branch: { id: '', name: '', color: '', active: true },
+} as FullSector;
+
 interface Props {
-  sector: FullSector;
+  sector?: FullSector;
   userId: string;
 }
 
-export default function SectorDetails({ sector, userId }: Props) {
+export default function SectorDetails({ sector = defaultSector, userId }: Props) {
+  const isCreating = !Boolean(sector.id);
+
   const [loading, setLoading] = useState(false);
-  const [readOnly, setReadonly] = useState(true);
+  const [readOnly, setReadonly] = useState(!isCreating);
   const [sectorData, setSectorData] = useState<FullSector>(sector);
   const [branchesData, setBranchesData] = useState<FullSector['branch'][]>([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
@@ -55,9 +66,13 @@ export default function SectorDetails({ sector, userId }: Props) {
 
   const schema = z.object({
     name: z.string().min(1, { message: 'Nom requis' }),
-    color: z.string(),
+    color: z
+      .string({ coerce: true })
+      .startsWith('#', 'Seules les couleurs au format hexadécimal sont acceptées (#6c0277)')
+      .optional()
+      .or(z.literal('')),
     active: z.boolean(),
-    branchId: z.string().min(1, { message: 'Secteur requis' }),
+    branchId: z.string().min(1, { message: 'Branche requise' }),
   });
 
   const form = useForm({
@@ -104,13 +119,64 @@ export default function SectorDetails({ sector, userId }: Props) {
     setComboValue(sector.branch);
   }
 
+  async function handleCreate(values: typeof form.values) {
+    const createRes: FullSector | null = await fetchSector(
+      'create',
+      [
+        {
+          data: {
+            name: values.name,
+            color: values.color,
+            active: values.active,
+            branch: { connect: { id: comboValue?.id } },
+            createdBy: { connect: { id: userId } },
+            updatedBy: { connect: { id: userId } },
+          },
+          include: { branch: true, missions: true },
+        },
+      ],
+      '/',
+    ).catch(() => null);
+
+    if (!createRes) {
+      notifications.show({
+        title: 'Erreur',
+        message: 'Erreur lors de la création du secteur',
+        color: 'red',
+        autoClose: 4e3,
+      });
+    } else {
+      setSectorData(createRes);
+      form.setValues(createRes);
+      form.resetDirty();
+      notifications.show({
+        title: 'Création de secteur',
+        message: 'Secteur créé avec succès',
+        color: 'green',
+        autoClose: 4e3,
+      });
+      redirect(`/admin/secteurs/${createRes.id}`);
+    }
+  }
+
   async function handleSubmit(values: typeof form.values) {
+    if (readOnly) return;
+
     setLoading(true);
+    if (isCreating) {
+      await handleCreate(values);
+    } else {
+      await handleUpdate(values);
+    }
+    setLoading(false);
+  }
+
+  async function handleUpdate(values: typeof form.values) {
     const updateRes: FullSector | null = await fetchSector(
       'update',
       [
         {
-          where: { id: sector.id },
+          where: { id: sectorData.id },
           data: {
             name: values.name,
             color: values.color,
@@ -118,7 +184,7 @@ export default function SectorDetails({ sector, userId }: Props) {
             branch: { connect: { id: comboValue?.id } },
             updatedBy: { connect: { id: userId } },
           },
-          include: { branch: true },
+          include: { branch: true, missions: true },
         },
       ],
       '/',
@@ -143,7 +209,6 @@ export default function SectorDetails({ sector, userId }: Props) {
       });
     }
     setReadonly(true);
-    setLoading(false);
   }
 
   const branchSearchChange = useDebouncedCallback(handleBranchSearch, 300);
@@ -155,7 +220,7 @@ export default function SectorDetails({ sector, userId }: Props) {
   ));
 
   function handleComboOptionSubmit(val: string) {
-    const selectedBranch = branchesData.find((branch) => branch.id === val) || sector.branch;
+    const selectedBranch = branchesData.find((branch) => branch.id === val) || sectorData.branch;
     setComboValue(selectedBranch);
     setComboSearch(formatBranchName(selectedBranch));
     form.setFieldValue('branchId', selectedBranch?.id);
@@ -178,7 +243,7 @@ export default function SectorDetails({ sector, userId }: Props) {
       children: <Text>Êtes-vous sûr de vouloir supprimer ce secteur ?</Text>,
       async onConfirm() {
         setLoading(true);
-        const deleteRes = await fetchSector('delete', [{ where: { id: sector.id } }], '/');
+        const deleteRes = await fetchSector('delete', [{ where: { id: sectorData.id } }], '/');
         if (!deleteRes) {
           notifications.show({
             title: 'Erreur',
@@ -260,14 +325,16 @@ export default function SectorDetails({ sector, userId }: Props) {
             </Button>
           ) : (
             <>
-              <Button type='button' color='red' onClick={handleDelete}>
-                Supprimer
-              </Button>
+              {!isCreating && (
+                <Button type='button' color='red' onClick={handleDelete}>
+                  Supprimer
+                </Button>
+              )}
               <Button type='button' onClick={handleCancel} variant='light'>
                 Annuler
               </Button>
               <Button type='submit' loading={loading}>
-                Enregistrer
+                {isCreating ? 'Créer' : 'Enregistrer'}
               </Button>
             </>
           )}

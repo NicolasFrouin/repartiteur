@@ -1,5 +1,5 @@
 import BranchTable from '@/components/bsm/branch/BranchTable';
-import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Text } from '@mantine/core';
 import Link from 'next/link';
 
 export default function Page() {
@@ -12,14 +12,9 @@ export default function Page() {
           </Anchor>
           <Text>Branches</Text>
         </Breadcrumbs>
-        {/* <Button
-          component={Link}
-          href={'/admin/branches/nouveau'}
-          variant='outline'
-          color='blue'
-        >
+        <Button component={Link} href={'/admin/branches/nouveau'} variant='outline' color='blue'>
           Créer une branche
-        </Button> */}
+        </Button>
       </Group>
       <BranchTable />
     </Box>
