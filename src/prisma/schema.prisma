@@ -61,6 +61,8 @@ model User {
   UpdatedMissions    Mission[]    @relation(name: "MissionUpdatedByUser")
   CreatedAssignments Assignment[] @relation(name: "AssignmentCreatedByUser")
   UpdatedAssignments Assignment[] @relation(name: "AssignmentUpdatedByUser")
+  // CreatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorCreatedByUser")
+  // UpdatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorUpdatedByUser")
 }
 
 model Account {
@@ -143,6 +145,7 @@ model Caregiver {
   branchId String
 
   assignments Assignment[] @relation(name: "CaregiverAssignments")
+  // CaregiverSector CaregiverSector[] @relation(name: "CaregiverSector")
 }
 
 model Branch {
@@ -183,6 +186,7 @@ model Sector {
   branchId String
 
   missions Mission[]
+  // CaregiverSector CaregiverSector[] @relation(name: "SectorCaregiver")
 }
 
 model Mission {
@@ -227,3 +231,21 @@ model Assignment {
 
   @@id([date, caregiverId, missionId])
 }
+
+// model CaregiverSector {
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   archived  Boolean  @default(false)
+
+//   caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverSector")
+//   caregiverId String
+//   sector      Sector    @relation(fields: [sectorId], references: [id], name: "SectorCaregiver")
+//   sectorId    String
+
+//   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverSectorCreatedByUser")
+//   createdById String?
+//   updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "CaregiverSectorUpdatedByUser")
+//   updatedById String?
+
+//   @@id([caregiverId, sectorId])
+// }
