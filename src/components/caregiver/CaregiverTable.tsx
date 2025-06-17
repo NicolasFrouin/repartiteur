@@ -1,7 +1,9 @@
 'use client';
 
 import { fetchCaregiver } from '@/actions/common';
-import { Caregiver } from '@/generated/client';
+import { Role } from '@/generated/client';
+import { canAccess } from '@/lib/utils';
+import { FullCaregiver } from '@/types/utils';
 import {
   ActionIcon,
   Anchor,
@@ -15,14 +17,19 @@ import {
   Text,
 } from '@mantine/core';
 import dayjs from 'dayjs';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
 import ColorCell from '../common/table/ColorCell';
 
-type Data = Caregiver & { branch: { name: string } };
+type Data = FullCaregiver & { branch: { name: string } };
 
 export default function CaregiverTable() {
+  const { data: session } = useSession();
+
+  const hasAccess = canAccess(session?.user.role, Role.SUPERADMIN);
+
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   // eslint-disable-next-line
@@ -31,6 +38,10 @@ export default function CaregiverTable() {
   const [data, setData] = useState<Data[]>([]);
 
   const tableHeaders: React.ReactNode[] = ['Nom', 'État', 'Branche', 'Couleur', 'Actions'];
+  if (hasAccess) {
+    tableHeaders.splice(-1, 0, 'Modifié par', 'Modifié le');
+  }
+
   const tableBody = data.map((c) => {
     return [
       <Anchor key={`${c.id}-name`} component={Link} href={`/admin/soignants/${c.id}`}>
@@ -41,6 +52,14 @@ export default function CaregiverTable() {
         {c.branch.name}
       </Link>,
       <ColorCell key={`${c.id}-color`} color={c.color} />,
+      ...(hasAccess
+        ? [
+            <Text key={`${c.id}-updatedBy`}>{c.updatedBy?.name || '-'}</Text>,
+            <Text key={`${c.id}-updatedAt`}>
+              {c.updatedAt ? new Date(c.updatedAt).toLocaleString() : '-'}
+            </Text>,
+          ]
+        : []),
       <ActionIcon
         key={`${c.id}-action`}
         variant='subtle'
@@ -64,6 +83,7 @@ export default function CaregiverTable() {
         {
           include: {
             branch: true,
+            updatedBy: hasAccess,
             _count: {
               select: {
                 assignments: {

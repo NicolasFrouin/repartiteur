@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { Role } from '@/generated/client';
-import { canAccess } from '@/lib/utils/auth';
+import { canAccess } from '@/lib/utils';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 

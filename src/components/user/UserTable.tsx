@@ -2,6 +2,7 @@
 
 import { fetchUser } from '@/actions/common';
 import { User } from '@/generated/client';
+import { getRoleLabel } from '@/lib/utils';
 import {
   ActionIcon,
   Anchor,
@@ -18,7 +19,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
 import ArchivedIndicator from '../common/table/ArchivedIndicator';
-import { getRoleLabel } from '@/lib/utils/text';
 
 type Data = User & { updatedBy?: User };
 

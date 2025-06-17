@@ -5,7 +5,7 @@ import BSMTableCommon from '@/components/common/bsm/BSMTableCommon';
 import ArchivedIndicator from '@/components/common/table/ArchivedIndicator';
 import ColorCell from '@/components/common/table/ColorCell';
 import { Role } from '@/generated/client';
-import { canAccess } from '@/lib/utils/auth';
+import { canAccess } from '@/lib/utils';
 import { FullBranch } from '@/types/utils';
 import { ActionIcon, Anchor, Text } from '@mantine/core';
 import { useSession } from 'next-auth/react';

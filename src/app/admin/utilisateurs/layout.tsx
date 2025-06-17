@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import NotAuthorized from '@/components/error/NotAuthorized';
 import { Role } from '@/generated/client';
-import { canAccess } from '@/lib/utils/auth';
+import { canAccess } from '@/lib/utils';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Gestion des utilisateurs' };

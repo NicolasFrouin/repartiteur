@@ -2,7 +2,7 @@
 
 import { fetchUser } from '@/actions/common';
 import { Role, User } from '@/generated/client';
-import { signInSchema } from '@/lib/utils/zod';
+import { signInSchema } from '@/lib/utils';
 import {
   Button,
   Group,

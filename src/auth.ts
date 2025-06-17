@@ -5,7 +5,7 @@ import type { Provider } from 'next-auth/providers';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { User } from './generated/client';
 import prisma from './lib/prisma';
-import { signInSchema } from './lib/utils/zod';
+import { signInSchema } from './lib/utils';
 
 declare module 'next-auth' {
   interface Session {

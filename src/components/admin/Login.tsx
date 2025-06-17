@@ -1,6 +1,6 @@
 'use client';
 
-import { signInSchema } from '@/lib/utils/zod';
+import { signInSchema } from '@/lib/utils';
 import {
   Alert,
   Box,

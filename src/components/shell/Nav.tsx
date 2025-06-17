@@ -1,7 +1,8 @@
 'use client';
 /* eslint-disable react-hooks/rules-of-hooks */
 
-import { cn } from '@/lib/utils';
+import { Role } from '@/generated/client';
+import { canAccess, cn } from '@/lib/utils';
 import {
   Box,
   Collapse,
@@ -30,8 +31,6 @@ import {
   FaUsersCog,
 } from 'react-icons/fa';
 import classes from './Nav.module.css';
-import { Role } from '@/generated/client';
-import { canAccess } from '@/lib/utils/auth';
 
 interface ILink {
   link: string;
