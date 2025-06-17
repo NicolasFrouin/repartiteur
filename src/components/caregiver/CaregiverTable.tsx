@@ -109,7 +109,7 @@ export default function CaregiverTable() {
     }
 
     fetchData();
-  }, [page, pageSize]);
+  }, [page, pageSize, hasAccess]);
 
   return (
     <Flex direction={'column'} gap={'md'}>
