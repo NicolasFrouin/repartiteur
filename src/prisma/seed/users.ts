@@ -51,5 +51,5 @@ export async function seedUsers(prisma: PrismaClient): Promise<User[]> {
   console.log('Users seeded successfully !');
   console.groupEnd();
 
-  return await prisma.user.findMany();
+  return await prisma.user.findMany({ where: { role: Role.SUPERADMIN } });
 }
