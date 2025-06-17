@@ -31,9 +31,10 @@ function formatSectorName(sector: FullMission['sector']) {
 
 interface Props {
   mission: FullMission;
+  userId: string;
 }
 
-export default function MissionDetails({ mission }: Props) {
+export default function MissionDetails({ mission, userId }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
   const [missionData, setMissionData] = useState<FullMission>(mission);
@@ -123,6 +124,7 @@ export default function MissionDetails({ mission }: Props) {
             color: values.color,
             active: values.active,
             sector: { connect: { id: comboValue?.id } },
+            updatedBy: { connect: { id: userId } },
           },
           select: { sector: true },
         },

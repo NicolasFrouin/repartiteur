@@ -41,6 +41,7 @@ export async function generateWeekCalendar(
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>,
   calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
   regenerate = false,
+  userId: string,
 ): Promise<FullAssignment[]> {
   logger.reset();
 
@@ -108,7 +109,13 @@ export async function generateWeekCalendar(
             );
 
             const assignment = await prisma.assignment.create({
-              data: { caregiverId: caregiver.id, missionId: mission.id, date: getDate(day) },
+              data: {
+                caregiverId: caregiver.id,
+                missionId: mission.id,
+                date: getDate(day),
+                createdById: userId,
+                updatedById: userId,
+              },
             });
             const fullAssignmentData = await prisma.assignment.findUnique({
               where: {
@@ -160,7 +167,13 @@ export async function generateWeekCalendar(
             );
 
             const assignment = await prisma.assignment.create({
-              data: { caregiverId: caregiver.id, missionId: mission.id, date: getDate(day) },
+              data: {
+                caregiverId: caregiver.id,
+                missionId: mission.id,
+                date: getDate(day),
+                createdById: userId,
+                updatedById: userId,
+              },
             });
             const fullAssignmentData = await prisma.assignment.findUnique({
               where: {

@@ -1,5 +1,5 @@
 import CaregiverTable from '@/components/caregiver/CaregiverTable';
-import { Anchor, Box, Breadcrumbs, Button, Group } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Text } from '@mantine/core';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -16,9 +16,7 @@ export default function Page() {
           <Anchor component={Link} href={'/admin'}>
             Administration
           </Anchor>
-          <Anchor component={Link} href={'/admin/soignants'}>
-            Soignants
-          </Anchor>
+          <Text>Soignants</Text>
         </Breadcrumbs>
         <Button component={Link} href={'/admin/soignants/nouveau'} variant='outline' color='blue'>
           Créer un soignant

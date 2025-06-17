@@ -46,9 +46,10 @@ function formatBranchName(branch?: FullCaregiver['branch']) {
 
 interface Props {
   caregiver?: FullCaregiver;
+  userId: string;
 }
 
-export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props) {
+export default function CaregiverDetails({ caregiver = defaultCaregiver, userId }: Props) {
   const isCreating = !Boolean(caregiver.id);
 
   const [loading, setLoading] = useState(false);
@@ -144,6 +145,8 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props
             color: values.color,
             branch: { connect: { id: comboValue?.id } },
             active: values.active,
+            createdBy: { connect: { id: userId } },
+            updatedBy: { connect: { id: userId } },
           },
         },
       ],
@@ -183,6 +186,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props
             color: values.color,
             branch: { connect: { id: comboValue?.id } },
             active: values.active,
+            updatedBy: { connect: { id: userId } },
           },
           where: { id: caregiver.id },
         },
@@ -308,6 +312,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver }: Props
         >
           <SegmentedControl
             key={form.key('bigWeekType')}
+            color='blue'
             {...defaultProps('bigWeekType', 'styles.required')}
             data={[
               { label: 'Semaine paire', value: CaregiverBigWeekType.EVEN },

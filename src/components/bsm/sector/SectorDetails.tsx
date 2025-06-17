@@ -31,9 +31,10 @@ function formatBranchName(branch: FullSector['branch']) {
 
 interface Props {
   sector: FullSector;
+  userId: string;
 }
 
-export default function SectorDetails({ sector }: Props) {
+export default function SectorDetails({ sector, userId }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
   const [sectorData, setSectorData] = useState<FullSector>(sector);
@@ -115,6 +116,7 @@ export default function SectorDetails({ sector }: Props) {
             color: values.color,
             active: values.active,
             branch: { connect: { id: comboValue?.id } },
+            updatedBy: { connect: { id: userId } },
           },
           include: { branch: true },
         },

@@ -1,14 +1,24 @@
+import { auth } from '@/auth';
 import CaregiverDetails from '@/components/caregiver/CaregiverDetails';
-import { Anchor, Box, Breadcrumbs, Group } from '@mantine/core';
+import { Role } from '@/generated/client';
+import { canAccess } from '@/lib/utils/auth';
+import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Nouveau soignant',
   description: 'Créer un nouveau soignant',
 };
 
-export default function Page() {
+export default async function Page() {
+  const session = await auth();
+
+  if (!canAccess(session?.user?.role, Role.ADMIN)) {
+    return notFound();
+  }
+
   return (
     <Box>
       <Group justify='space-between' align='center' mb={20}>
@@ -19,13 +29,11 @@ export default function Page() {
           <Anchor component={Link} href={'/admin/soignants'}>
             Soignants
           </Anchor>
-          <Anchor component={Link} href={'/admin/soignants/nouveau'}>
-            Nouveau soignant
-          </Anchor>
+          <Text>Nouveau soignant</Text>
         </Breadcrumbs>
       </Group>
       <Box className='md:px-[20%]'>
-        <CaregiverDetails />
+        <CaregiverDetails userId={session!.user.id} />
       </Box>
     </Box>
   );

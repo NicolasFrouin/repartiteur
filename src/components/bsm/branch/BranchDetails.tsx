@@ -13,9 +13,10 @@ import { z } from 'zod';
 
 interface Props {
   branch: Branch;
+  userId: string;
 }
 
-export default function BranchDetails({ branch }: Props) {
+export default function BranchDetails({ branch, userId }: Props) {
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(true);
   const [branchData, setBranchData] = useState<Branch>(branch);
@@ -57,7 +58,12 @@ export default function BranchDetails({ branch }: Props) {
       [
         {
           where: { id: branch.id },
-          data: { name: values.name, color: values.color, active: values.active },
+          data: {
+            name: values.name,
+            color: values.color,
+            active: values.active,
+            updatedById: userId,
+          },
         },
       ],
       '/',

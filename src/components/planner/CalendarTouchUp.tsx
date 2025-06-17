@@ -1,14 +1,17 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 
+import { generateWeekCalendar } from '@/actions/assignments';
 import { getBranchesToMissions } from '@/actions/data';
 import { Caregiver, Sector } from '@/generated/client';
 import { DEFAULT_CALENDAR_OPTIONS, getWeekNumber } from '@/lib/utils';
 import { BSM, FullAssignment, TCalendarOptions } from '@/types/utils';
 import { Box, Button, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core';
 import { Metadata } from 'next';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import CaregiversPlanning from '../caregiver/CaregiversPlanning';
-import { generateWeekCalendar } from '@/actions/assignments';
+import NotAuthorized from '../error/NotAuthorized';
 
 export const metadata: Metadata & { title: string } = { title: 'Planificateur - Calendrier' };
 
@@ -27,13 +30,24 @@ export default function CalendarTouchUp({
   weekCalendar = null,
   setWeekCalendar = () => {},
 }: Props) {
+  const { data: session, status } = useSession();
+
+  if (status !== 'authenticated' || !session?.user) {
+    return <NotAuthorized />;
+  }
+
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<BSM[]>(branchesData || []);
   const [generated, setGenerated] = useState(weekCalendar !== null);
 
   async function handleGenerateCalendar(regenerate = false) {
     setLoading(true);
-    const res = await generateWeekCalendar(forbiddenSectors, calendarOptions, regenerate);
+    const res = await generateWeekCalendar(
+      forbiddenSectors,
+      calendarOptions,
+      regenerate,
+      session!.user.id,
+    );
     setGenerated(true);
     setWeekCalendar?.(res);
     setLoading(false);

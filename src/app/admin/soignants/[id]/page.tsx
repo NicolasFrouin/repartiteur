@@ -1,6 +1,10 @@
+import { auth } from '@/auth';
 import CaregiverDetails from '@/components/caregiver/CaregiverDetails';
+import { Role } from '@/generated/client';
 import prisma from '@/lib/prisma';
-import { Box } from '@mantine/core';
+import { canAccess } from '@/lib/utils/auth';
+import { Anchor, Box, Breadcrumbs, Group, Text } from '@mantine/core';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 interface Props {
@@ -25,6 +29,12 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function Page({ params }: Props) {
+  const session = await auth();
+
+  if (!canAccess(session?.user?.role, Role.ADMIN)) {
+    return notFound();
+  }
+
   const { id } = await params;
   const caregiver = await prisma.caregiver.findUnique({ where: { id }, include: { branch: true } });
 
@@ -33,8 +43,21 @@ export default async function Page({ params }: Props) {
   }
 
   return (
-    <Box className='md:px-[20%]'>
-      <CaregiverDetails caregiver={caregiver} />
+    <Box>
+      <Group justify='space-between' align='center' mb={20}>
+        <Breadcrumbs>
+          <Anchor component={Link} href={'/admin'}>
+            Administration
+          </Anchor>
+          <Anchor component={Link} href={'/admin/soignants'}>
+            Soignants
+          </Anchor>
+          <Text>Détails du soignant</Text>
+        </Breadcrumbs>
+      </Group>
+      <Box className='md:px-[20%]'>
+        <CaregiverDetails caregiver={caregiver} userId={session!.user.id} />
+      </Box>
     </Box>
   );
 }

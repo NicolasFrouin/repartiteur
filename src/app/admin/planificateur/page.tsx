@@ -6,7 +6,8 @@ import CaregiverOptions from '@/components/planner/CaregiverOptions';
 import { Caregiver, Sector } from '@/generated/client';
 import { DEFAULT_CALENDAR_OPTIONS } from '@/lib/utils';
 import { FullAssignment, TCalendarOptions } from '@/types/utils';
-import { Box, Button, Group, Stepper } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Stepper, Text } from '@mantine/core';
+import Link from 'next/link';
 import { SetStateAction, useState } from 'react';
 
 interface StepProps {
@@ -82,6 +83,14 @@ export default function Page() {
 
   return (
     <Box>
+      <Group justify='space-between' align='center' mb={20}>
+        <Breadcrumbs>
+          <Anchor component={Link} href={'/admin'}>
+            Administration
+          </Anchor>
+          <Text>Planificateur</Text>
+        </Breadcrumbs>
+      </Group>
       <Stepper active={active} onStepClick={setActive} allowNextStepsSelect={false}>
         {STEPS.map((step, i) => (
           <Stepper.Step key={i} label={step.label}>
