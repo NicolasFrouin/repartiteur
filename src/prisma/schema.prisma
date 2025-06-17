@@ -26,7 +26,7 @@ enum CaregiverBigWeekType {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(cuid(2))
   role          Role      @default(USER)
   name          String?
   email         String?   @unique
@@ -64,7 +64,7 @@ model User {
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(cuid(2))
   userId            String
   type              String
   provider          String
@@ -86,7 +86,7 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(cuid(2))
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -122,7 +122,7 @@ model Authenticator {
 }
 
 model Caregiver {
-  id          String               @id @default(cuid())
+  id          String               @id @default(cuid(2))
   firstname   String?
   lastname    String?
   slug        String?
@@ -146,7 +146,7 @@ model Caregiver {
 }
 
 model Branch {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid(2))
   name      String?
   slug      String?
   color     String?
@@ -165,7 +165,7 @@ model Branch {
 }
 
 model Sector {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid(2))
   name      String?
   slug      String?
   color     String?
@@ -186,7 +186,7 @@ model Sector {
 }
 
 model Mission {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid(2))
   name      String?
   slug      String?
   min       Int      @default(0)
