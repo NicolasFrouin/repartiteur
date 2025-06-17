@@ -56,7 +56,7 @@ export default function CalendarOptions({
           valueFormat='LL'
           valueFormatter={formatter}
           value={calendarOptions.date}
-          onChange={(date) => setCalendarOptions((p) => ({ ...p, date: date }))}
+          onChange={(date) => date && setCalendarOptions((p) => ({ ...p, date: date }))}
           withCellSpacing={false}
           rightSection={
             <Tooltip label='Sélectionner la semaine prochaine' position='top' withArrow>
