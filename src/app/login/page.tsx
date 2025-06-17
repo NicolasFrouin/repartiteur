@@ -1,4 +1,5 @@
 import Login from '@/components/admin/Login';
+import { Box } from '@mantine/core';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,15 +8,15 @@ export const metadata: Metadata = {
 };
 
 interface Props {
-  searchParams: { callbackUrl?: string; error?: string };
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }
 
 export default async function Page(props: Props) {
   const searchParams = await props.searchParams;
 
   return (
-    <div className='flex flex-1 items-center justify-center'>
+    <Box className='flex flex-1 items-center justify-center'>
       <Login searchParams={searchParams} />
-    </div>
+    </Box>
   );
 }
