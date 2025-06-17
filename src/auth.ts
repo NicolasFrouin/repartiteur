@@ -31,11 +31,14 @@ export const providers: Provider[] = [
 
       const { email, password } = signInParseResult.data;
 
-      const user = await prisma.user.findUnique({ where: { email, active: true } });
+      const user = await prisma.user.findUnique({
+        where: { email, active: true },
+        include: { accounts: true, sessions: true },
+      });
       if (!user) {
         throw new CredentialsSignin('Identifiants incorrects');
       }
-      if (!user.password) {
+      if (!user.password || user.accounts.length > 0 || user.sessions.length > 0) {
         throw new AuthError('Connexion OAuth requise');
       }
 
@@ -47,35 +50,6 @@ export const providers: Provider[] = [
       return user;
     },
   }),
-  // CredentialsProvider({
-  //   id: 'credentials/signup',
-  //   name: 'Credentials',
-  //   credentials: {
-  //     email: { label: 'Adresse email', type: 'email', placeholder: 'john.doe@exemple.com' },
-  //     password: { label: 'Mot de passe', type: 'password', placeholder: 'M0n5uP3rM0tD3p45s3' },
-  //   },
-  //   async authorize(credentials) {
-  //     const signInParseResult = signInSchema.safeParse(credentials);
-
-  //     if (!signInParseResult.success) {
-  //       throw new CredentialsSignin(
-  //         signInParseResult.error.errors.map((e) => e.message).join(', '),
-  //       );
-  //     }
-
-  //     const { email, password } = signInParseResult.data;
-
-  //     const existingUser = await prisma.user.findUnique({ where: { email } });
-  //     if (existingUser) {
-  //       throw new CredentialsSignin('User already exists');
-  //     }
-
-  //     const hashedPassword = hashSync(password, 10);
-  //     const newUser = await prisma.user.create({ data: { email, password: hashedPassword } });
-
-  //     return newUser;
-  //   },
-  // }),
 ];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
