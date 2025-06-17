@@ -36,7 +36,7 @@ interface Props {
 }
 
 export default function Login({ searchParams }: Props) {
-  const callbackUrl = searchParams.callbackUrl || '/admin';
+  const callbackUrl = searchParams.callbackUrl || '/';
 
   const [error, setError] = useState<string | null>(
     getErrorMessage(searchParams.error, searchParams.code) || null,
