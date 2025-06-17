@@ -30,7 +30,6 @@ import {
   FaUser,
   FaUsersCog,
 } from 'react-icons/fa';
-import classes from './Nav.module.css';
 
 interface ILink {
   link: string;
@@ -79,6 +78,19 @@ const disconnectedLinks: ILink[] = [
   { link: '/login', label: 'Connexion', type: 'link', divide: true, icon: FaSignInAlt },
 ];
 
+const classes = {
+  link: 'ml-8 block border-l border-solid border-l-gray-300 px-2.5 py-4 pl-4 text-sm font-medium text-gray-700 no-underline transition-colors duration-200 ease-in-out hover:bg-gray-50 hover:text-blue-700 dark:border-l-slate-400 dark:text-gray-50 dark:hover:bg-slate-700 dark:hover:text-blue-100',
+  control:
+    'my-2.5 block w-full font-medium transition-colors duration-200 ease-in-out hover:bg-gray-50 hover:text-blue-700 dark:hover:bg-slate-700 dark:hover:text-blue-400',
+  desktopDropdownContent:
+    'absolute z-100 min-w-[200px] rounded-sm bg-white shadow-md dark:bg-slate-700',
+  active: 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200',
+  desktopLink:
+    'flex px-2.5 py-4 text-sm font-medium text-black transition-colors duration-200 ease-in-out hover:text-blue-600',
+  mobileNavContainer: 'flex flex-col w-full px-2.5',
+  desktopNav: 'flex items-center',
+};
+
 interface NavbarLinksGroupProps {
   link: ILink;
   close: () => void;
@@ -113,7 +125,7 @@ function MobileLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
           href={nestedLink.link}
           key={nestedLink.label}
           onClick={close}
-          className={`${classes.link} ${nestedLink.link === pathname ? classes.active : ''}`}
+          className={cn(classes.link, { [classes.active]: nestedLink.link === pathname })}
         >
           {nestedLink.label}
         </Link>,
@@ -142,7 +154,7 @@ function MobileLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
         // @ts-ignore
         href={link.type === 'link' ? link.link : null}
         onClick={handleClick}
-        className={`${classes.control} ${isActive && !hasLinks ? classes.active : ''}`}
+        className={cn(classes.control, { [classes.active]: isActive && !hasLinks })}
       >
         <Group justify='space-between' gap={0}>
           <Box style={{ display: 'flex', alignItems: 'center' }}>
@@ -188,7 +200,7 @@ function DesktopLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
         onMouseEnter={() => setDropdownOpen(true)}
         onMouseLeave={() => setDropdownOpen(false)}
       >
-        <Group className={classes.desktopLink} style={{ cursor: 'pointer' }}>
+        <Group className={cn(classes.desktopLink)} style={{ cursor: 'pointer' }}>
           <Icon size={16} color='var(--mantine-color-blue-6)' />
           <Text>{link.label}</Text>
           <FaChevronDown
@@ -197,23 +209,27 @@ function DesktopLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
           />
         </Group>
 
-        {dropdownOpen && link.links && (
-          <Box className={classes.desktopDropdownContent}>
-            {link.links.reduce<React.JSX.Element[]>((acc, item) => {
-              if (item.role && !canAccess(role, item.role)) return acc;
-              acc.push(
-                <Link
-                  href={item.link}
-                  key={item.label}
-                  className={`${classes.desktopLink} ${pathname === item.link ? classes.active : ''}`}
-                  onClick={close}
-                >
-                  {item.label}
-                </Link>,
-              );
-              return acc;
-            }, [])}
-          </Box>
+        {link.links && (
+          <Collapse in={dropdownOpen}>
+            <Box className={cn(classes.desktopDropdownContent)}>
+              {link.links.reduce<React.JSX.Element[]>((acc, item) => {
+                if (item.role && !canAccess(role, item.role)) return acc;
+                acc.push(
+                  <Link
+                    href={item.link}
+                    key={item.label}
+                    className={cn(classes.desktopLink, {
+                      [classes.active]: pathname === item.link,
+                    })}
+                    onClick={close}
+                  >
+                    {item.label}
+                  </Link>,
+                );
+                return acc;
+              }, [])}
+            </Box>
+          </Collapse>
         )}
       </Box>
     );
@@ -221,7 +237,11 @@ function DesktopLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
 
   if (link.type === 'logout') {
     return (
-      <Group className={classes.desktopLink} onClick={handleClick} style={{ cursor: 'pointer' }}>
+      <Group
+        className={cn(classes.desktopLink)}
+        onClick={handleClick}
+        style={{ cursor: 'pointer' }}
+      >
         <Icon size={16} color='var(--mantine-color-blue-6)' />
         <Text>{link.label}</Text>
       </Group>
@@ -229,7 +249,7 @@ function DesktopLinksGroup({ link, close, role }: NavbarLinksGroupProps) {
   }
 
   return (
-    <Link href={link.link} onClick={handleClick} className={classes.desktopLink}>
+    <Link href={link.link} onClick={handleClick} className={cn(classes.desktopLink)}>
       <Group>
         <Icon size={16} color='var(--mantine-color-blue-6)' />
         <Text>{link.label}</Text>
