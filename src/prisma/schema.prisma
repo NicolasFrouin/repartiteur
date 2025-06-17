@@ -34,6 +34,7 @@ model User {
   emailVerified DateTime?
   image         String?
   slug          String?   @unique
+  active        Boolean   @default(true)
   archived      Boolean   @default(false)
 
   createdAt DateTime @default(now())

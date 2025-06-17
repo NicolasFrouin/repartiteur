@@ -1,6 +1,9 @@
 import { Role } from '@/generated/client';
 
-export function canAccess(userRole: Role | null | undefined, requiredRole: Role): boolean {
+export function canAccess(
+  userRole: Role | null | undefined,
+  requiredRole: Role = Role.USER,
+): boolean {
   if (!userRole) {
     return false;
   }
