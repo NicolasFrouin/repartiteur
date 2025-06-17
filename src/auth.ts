@@ -1,5 +1,5 @@
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import { compareSync } from 'bcrypt';
+import { compareSync } from 'bcryptjs';
 import NextAuth, { AuthError, CredentialsSignin, DefaultSession } from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -31,7 +31,7 @@ export const providers: Provider[] = [
 
       const { email, password } = signInParseResult.data;
 
-      const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({ where: { email, active: true } });
       if (!user) {
         throw new CredentialsSignin('Identifiants incorrects');
       }

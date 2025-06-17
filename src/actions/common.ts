@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { hashSync } from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
 
 export async function fetchUser<T extends typeof prisma.user>(
@@ -9,6 +10,11 @@ export async function fetchUser<T extends typeof prisma.user>(
   args: Parameters<T[keyof T]> = [] as unknown as Parameters<T[keyof T]>,
   pathToRevalidate?: string,
 ) {
+  // @ts-expect-error ---
+  if (functionName === 'create' && args?.[0]?.data?.password) {
+    // @ts-expect-error ---
+    args[0].data.password = hashSync(args[0].data.password, 12);
+  }
   // @ts-expect-error ---
   const res = await prisma.user[functionName](...args);
   if (pathToRevalidate) {

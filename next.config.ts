@@ -12,7 +12,17 @@ const nextConfig: NextConfig = {
       'src/utils',
     ],
   },
-  experimental: { serverActions: { allowedOrigins: ['*'] } },
+  experimental: {
+    serverActions: { allowedOrigins: ['*'] },
+    optimizePackageImports: [
+      '@mantine/core',
+      '@mantine/dates',
+      '@mantine/form',
+      '@mantine/hooks',
+      '@mantine/modals',
+      '@mantine/notifications',
+    ],
+  },
 };
 
 export default nextConfig;
