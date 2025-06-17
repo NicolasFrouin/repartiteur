@@ -50,7 +50,7 @@
 }
 
 .desktopLink {
-  display: block;
+  display: flex;
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
   font-weight: 500;
   color: var(--mantine-color-text);
