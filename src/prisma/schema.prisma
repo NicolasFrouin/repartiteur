@@ -1,7 +1,8 @@
 generator client {
-  provider      = "prisma-client-js"
-  output        = "../generated/client"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+  output          = "../generated/client"
+  binaryTargets   = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -49,20 +50,20 @@ model User {
   sessions      Session[]
   Authenticator Authenticator[] // Optional for WebAuthn support
 
-  CreatedUsers       User[]       @relation(name: "UserCreatedByUser")
-  UpdatedUsers       User[]       @relation(name: "UserUpdatedByUser")
-  CreatedCaregivers  Caregiver[]  @relation(name: "CaregiverCreatedByUser")
-  UpdatedCaregivers  Caregiver[]  @relation(name: "CaregiverUpdatedByUser")
-  CreatedBranches    Branch[]     @relation(name: "BranchCreatedByUser")
-  UpdatedBranches    Branch[]     @relation(name: "BranchUpdatedByUser")
-  CreatedSectors     Sector[]     @relation(name: "SectorCreatedByUser")
-  UpdatedSectors     Sector[]     @relation(name: "SectorUpdatedByUser")
-  CreatedMissions    Mission[]    @relation(name: "MissionCreatedByUser")
-  UpdatedMissions    Mission[]    @relation(name: "MissionUpdatedByUser")
-  CreatedAssignments Assignment[] @relation(name: "AssignmentCreatedByUser")
-  UpdatedAssignments Assignment[] @relation(name: "AssignmentUpdatedByUser")
-  // CreatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorCreatedByUser")
-  // UpdatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorUpdatedByUser")
+  CreatedUsers           User[]            @relation(name: "UserCreatedByUser")
+  UpdatedUsers           User[]            @relation(name: "UserUpdatedByUser")
+  CreatedCaregivers      Caregiver[]       @relation(name: "CaregiverCreatedByUser")
+  UpdatedCaregivers      Caregiver[]       @relation(name: "CaregiverUpdatedByUser")
+  CreatedBranches        Branch[]          @relation(name: "BranchCreatedByUser")
+  UpdatedBranches        Branch[]          @relation(name: "BranchUpdatedByUser")
+  CreatedSectors         Sector[]          @relation(name: "SectorCreatedByUser")
+  UpdatedSectors         Sector[]          @relation(name: "SectorUpdatedByUser")
+  CreatedMissions        Mission[]         @relation(name: "MissionCreatedByUser")
+  UpdatedMissions        Mission[]         @relation(name: "MissionUpdatedByUser")
+  CreatedAssignments     Assignment[]      @relation(name: "AssignmentCreatedByUser")
+  UpdatedAssignments     Assignment[]      @relation(name: "AssignmentUpdatedByUser")
+  CreatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorCreatedByUser")
+  UpdatedCaregiverSector CaregiverSector[] @relation(name: "CaregiverSectorUpdatedByUser")
 }
 
 model Account {
@@ -144,8 +145,8 @@ model Caregiver {
   branch   Branch @relation(fields: [branchId], references: [id], name: "CaregiverInBranch")
   branchId String
 
-  assignments Assignment[] @relation(name: "CaregiverAssignments")
-  // CaregiverSector CaregiverSector[] @relation(name: "CaregiverSector")
+  assignments Assignment[]      @relation(name: "CaregiverAssignments")
+  sectors     CaregiverSector[] @relation(name: "CaregiverAttributedToSector")
 }
 
 model Branch {
@@ -185,8 +186,8 @@ model Sector {
   branch   Branch @relation(fields: [branchId], references: [id])
   branchId String
 
-  missions Mission[]
-  // CaregiverSector CaregiverSector[] @relation(name: "SectorCaregiver")
+  missions   Mission[]
+  caregivers CaregiverSector[] @relation(name: "SectorAttributedToCaregiver")
 }
 
 model Mission {
@@ -232,20 +233,20 @@ model Assignment {
   @@id([date, caregiverId, missionId])
 }
 
-// model CaregiverSector {
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   archived  Boolean  @default(false)
+model CaregiverSector {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-//   caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverSector")
-//   caregiverId String
-//   sector      Sector    @relation(fields: [sectorId], references: [id], name: "SectorCaregiver")
-//   sectorId    String
+  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverAttributedToSector")
+  caregiverId String
+  sector      Sector    @relation(fields: [sectorId], references: [id], name: "SectorAttributedToCaregiver")
+  sectorId    String
 
-//   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverSectorCreatedByUser")
-//   createdById String?
-//   updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "CaregiverSectorUpdatedByUser")
-//   updatedById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverSectorCreatedByUser")
+  createdById String?
+  updatedBy   User?   @relation(fields: [updatedById], references: [id], onDelete: SetNull, name: "CaregiverSectorUpdatedByUser")
+  updatedById String?
 
-//   @@id([caregiverId, sectorId])
-// }
+  @@id([caregiverId, sectorId])
+}

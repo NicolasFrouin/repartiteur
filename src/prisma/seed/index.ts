@@ -1,10 +1,8 @@
-import { PrismaClient } from '@/generated/client';
+import prisma from '@/lib/prisma';
 import { seedAssignments } from './assignments';
 import { seedBranches } from './branches';
 import { seedCaregivers } from './caregivers';
 import { seedUsers } from './users';
-
-const prisma = new PrismaClient();
 
 async function main() {
   const users = await seedUsers(prisma);

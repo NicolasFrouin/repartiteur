@@ -39,7 +39,7 @@ export async function seedBranches(prisma: PrismaClient, users: User[]): Promise
         for (const createdSector of createdSectors) {
           for (const mission of missions) {
             mission.color = randomColor();
-            mission.slug = toSlug(mission.slug || '');
+            mission.slug = toSlug(mission.name || '');
 
             await prisma.mission.createManyAndReturn({
               data: { ...mission, sectorId: createdSector.id, ...userData },

@@ -1,4 +1,5 @@
 import { PrismaClient, PrismaPromise } from '@/generated/client';
+import { PrismaBetterSQLite3 } from '@prisma/adapter-better-sqlite3';
 
 const LOG =
   process.env.NODE_ENV === 'development' &&
@@ -11,9 +12,13 @@ type PrismaExcludedKeys = `$${string}` | keyof object | symbol;
 type PrismaModelNames = Exclude<keyof PrismaClient, PrismaExcludedKeys>;
 type PrismaModelsQueries = Exclude<keyof PrismaClient[PrismaModelNames], PrismaExcludedKeys>;
 
+const adapter = new PrismaBetterSQLite3({
+  url: `src/prisma/${process.env.DATABASE_URL.replace('file:', '')}`,
+});
+
 const prisma =
   globalForPrisma.prisma ||
-  new PrismaClient().$extends({
+  new PrismaClient({ adapter }).$extends({
     query: {
       $allOperations: async ({
         args,

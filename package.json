@@ -24,6 +24,7 @@
     "@mantine/hooks": "^8.1.1",
     "@mantine/modals": "^8.1.1",
     "@mantine/notifications": "^8.1.1",
+    "@prisma/adapter-better-sqlite3": "^6.10.0",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
@@ -40,7 +41,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.10.0",
     "@tailwindcss/postcss": "^4.1.6",
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.4",
@@ -55,7 +56,7 @@
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "prisma": "^6.9.0",
+    "prisma": "^6.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
     "typescript": "^5"
