@@ -28,7 +28,7 @@ export type BSM = BranchesSectorsMissions;
 
 export type FullCaregiver = Caregiver & {
   branch: Branch;
-  sectors: CaregiverSector[];
+  assignedSectors: CaregiverSector[];
   updatedBy?: User | null;
 };
 export type FullAssignment = Assignment & {
@@ -40,7 +40,7 @@ export type FullBranch = Branch & { sectors: Sector[]; updatedBy?: User | null }
 export type FullSector = Sector & {
   missions: Mission[];
   branch: Branch;
-  caregivers?: Caregiver[];
+  assignedCaregivers?: Caregiver[];
   updatedBy?: User | null;
 };
 export type FullMission = Mission & {

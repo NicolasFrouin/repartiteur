@@ -145,8 +145,8 @@ model Caregiver {
   branch   Branch @relation(fields: [branchId], references: [id], name: "CaregiverInBranch")
   branchId String
 
-  assignments Assignment[]      @relation(name: "CaregiverAssignments")
-  sectors     CaregiverSector[] @relation(name: "CaregiverAttributedToSector")
+  assignments     Assignment[]      @relation(name: "CaregiverAssignments")
+  assignedSectors CaregiverSector[] @relation(name: "CaregiverAssignedToSector")
 }
 
 model Branch {
@@ -186,8 +186,8 @@ model Sector {
   branch   Branch @relation(fields: [branchId], references: [id])
   branchId String
 
-  missions   Mission[]
-  caregivers CaregiverSector[] @relation(name: "SectorAttributedToCaregiver")
+  missions           Mission[]
+  assignedCaregivers CaregiverSector[] @relation(name: "SectorAssignedToCaregiver")
 }
 
 model Mission {
@@ -238,9 +238,9 @@ model CaregiverSector {
   updatedAt DateTime @updatedAt
   archived  Boolean  @default(false)
 
-  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverAttributedToSector")
+  caregiver   Caregiver @relation(fields: [caregiverId], references: [id], name: "CaregiverAssignedToSector")
   caregiverId String
-  sector      Sector    @relation(fields: [sectorId], references: [id], name: "SectorAttributedToCaregiver")
+  sector      Sector    @relation(fields: [sectorId], references: [id], name: "SectorAssignedToCaregiver")
   sectorId    String
 
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull, name: "CaregiverSectorCreatedByUser")

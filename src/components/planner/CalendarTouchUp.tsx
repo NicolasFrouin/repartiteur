@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import CaregiversPlanning from '../caregiver/CaregiversPlanning';
 import NotAuthorized from '../error/NotAuthorized';
+import { notifications } from '@mantine/notifications';
 
 export const metadata: Metadata & { title: string } = { title: 'Planificateur - Calendrier' };
 
@@ -48,8 +49,17 @@ export default function CalendarTouchUp({
       regenerate,
       session!.user.id,
     );
-    setGenerated(true);
-    setWeekCalendar?.(res);
+    if (res === false) {
+      notifications.show({
+        title: 'Erreur',
+        message: 'Une erreur est survenue lors de la génération du calendrier.',
+        color: 'red',
+        position: 'top-right',
+      });
+    } else {
+      setGenerated(true);
+      setWeekCalendar?.(res);
+    }
     setLoading(false);
   }
 

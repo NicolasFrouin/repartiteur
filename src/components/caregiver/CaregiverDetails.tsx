@@ -1,36 +1,31 @@
 'use client';
 
-import { fetchBranch, fetchCaregiver } from '@/actions/common';
+import { fetchBranch, fetchCaregiver, fetchCaregiverSector } from '@/actions/common';
 import { CaregiverBigWeekType, CaregiverTime, Sector } from '@/generated/client';
 import { BIG_WEEK_DAYS, getWeekDay, getWeekNumber, toSlug } from '@/lib/utils';
-import { FullCaregiver } from '@/types/utils';
+import { FullBranch, FullCaregiver } from '@/types/utils';
 import {
   Box,
   Button,
-  Checkbox,
   ColorInput,
   Combobox,
   Group,
   Input,
-  InputBase,
-  Loader,
-  Pill,
-  PillsInput,
+  MultiSelect,
   SegmentedControl,
   Stack,
   Switch,
   Text,
   TextInput,
-  useCombobox,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useDebouncedCallback } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { redirect } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
+import BranchSelector from './BranchSelector';
 
 type Data = FullCaregiver & { linkedSectors?: Sector[] };
 
@@ -43,12 +38,8 @@ const defaultCaregiver = {
   bigWeekType: CaregiverBigWeekType.EVEN,
   active: true,
   branchId: '',
-  sectors: [] as Data['sectors'],
+  assignedSectors: [] as Data['assignedSectors'],
 } as Data;
-
-function formatBranchName(branch?: Data['branch']) {
-  return branch?.name || '';
-}
 
 interface Props {
   caregiver?: Data;
@@ -58,46 +49,19 @@ interface Props {
 export default function CaregiverDetails({ caregiver = defaultCaregiver, userId }: Props) {
   const isCreating = !Boolean(caregiver.id);
 
+  const [sectorsData, setSectorsData] = useState<Sector[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [readOnly, setReadonly] = useState(!isCreating);
   const [caregiverData, setCaregiverData] = useState<Data>({
     ...caregiver,
-    linkedSectors: caregiver.sectors.map((s) => ({ id: s.sectorId }) as Sector),
+    linkedSectors: caregiver.assignedSectors.map((s) => ({ id: s.sectorId }) as Sector),
   });
 
-  const [branchesData, setBranchesData] = useState<Data['branch'][]>([]);
-  const [branchesLoading, setBranchesLoading] = useState(false);
-  const [branchComboSearch, setBranchComboSearch] = useState(
-    formatBranchName(caregiver.branch) || '',
-  );
-  const [branchComboValue, setBranchComboValue] = useState<Data['branch'] | null>(
+  const [branchComboValue, setBranchComboValue] = useState<Data['branch'] | FullBranch | null>(
     caregiver.branch || null,
   );
-
-  const [sectorsData, setSectorsData] = useState<Sector[]>([]);
-  const [sectorsLoading, setSectorsLoading] = useState(false);
-
   const isEvenWeek = getWeekNumber() % 2 === 0;
-
-  const branchCombobox = useCombobox({
-    onDropdownClose: () => branchCombobox.resetSelectedOption(),
-    onDropdownOpen: () => {
-      setBranchComboSearch('');
-      if (branchesData.length === 0 && !branchesLoading) {
-        handleBranchSearch('').then(() => branchCombobox.resetSelectedOption());
-      }
-    },
-  });
-  const sectorsCombobox = useCombobox({
-    onDropdownClose: () => sectorsCombobox.resetSelectedOption(),
-    onDropdownOpen: () => {
-      if (sectorsData.length === 0) {
-        fetchBranchSectors(caregiverData.branchId || '').then(() =>
-          sectorsCombobox.resetSelectedOption(),
-        );
-      }
-    },
-  });
 
   const schema = z.object({
     firstname: z.string().min(1, 'Prénom requis'),
@@ -109,7 +73,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
       .optional()
       .or(z.literal('')),
     branchId: z.string().min(1, 'Branche requise'),
-    sectors: z.array(z.object({ sectorId: z.string() })).optional(),
+    linkedSectors: z.array(z.object({ id: z.string() })).optional(),
     active: z.boolean(),
   });
 
@@ -135,42 +99,16 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
     return props;
   };
 
-  async function handleBranchSearch(query: string) {
-    setBranchesLoading(true);
-    await fetchBranch('findMany', [
-      {
-        where: { OR: [{ name: { contains: query } }, { id: query }], active: true },
-        take: 25,
-        orderBy: { name: 'asc' },
-      },
-    ])
-      .then((branches: Data['branch'][]) => setBranchesData(branches))
-      .catch(() => setBranchesData([]))
-      .finally(() => setBranchesLoading(false));
-  }
-
-  async function fetchBranchSectors(branchId: Data['branch']['id']) {
-    console.log('fetchBranchSectors :', branchId);
-    if (!branchId) return;
-    setSectorsLoading(true);
-    await fetchBranch('findUnique', [
-      { where: { id: branchId, active: true }, include: { sectors: true } },
-    ])
-      .then((branch) => {
-        if (branch) {
-          setSectorsData(branch.sectors);
-        }
-      })
-      .catch(() => setSectorsData([]))
-      .finally(() => setSectorsLoading(false));
-  }
-
   function handleCancel() {
     setReadonly(true);
     form.reset();
     form.resetDirty();
-    setBranchComboSearch(formatBranchName(caregiver.branch) || '');
     setBranchComboValue(caregiver.branch || null);
+    form.setFieldValue('branchId', caregiver.branch?.id || '');
+    form.setFieldValue(
+      'linkedSectors',
+      caregiver.assignedSectors.map((s) => ({ id: s.sectorId }) as Sector),
+    );
   }
 
   async function handleCreate(values: typeof form.values) {
@@ -178,6 +116,7 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
       'create',
       [
         {
+          // @ts-expect-error ---
           data: {
             firstname: values.firstname,
             lastname: values.lastname,
@@ -185,10 +124,19 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
             time: CaregiverTime.DAY,
             bigWeekType: values.bigWeekType,
             color: values.color,
-            branch: { connect: { id: branchComboValue?.id } },
             active: values.active,
-            createdBy: { connect: { id: userId } },
-            updatedBy: { connect: { id: userId } },
+            createdById: userId,
+            updatedById: userId,
+            branchId: branchComboValue?.id,
+            assignedSectors: {
+              createMany: {
+                data: (values.linkedSectors || []).map((sector) => ({
+                  sectorId: sector.id,
+                  createdById: userId,
+                  updatedById: userId,
+                })),
+              },
+            },
           },
         },
       ],
@@ -217,6 +165,31 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
   }
 
   async function handleUpdate(values: typeof form.values) {
+    console.log('DATA UPDATE', {
+      data: {
+        firstname: values.firstname,
+        lastname: values.lastname,
+        slug: toSlug([values.firstname, values.lastname].join(' ')),
+        bigWeekType: values.bigWeekType,
+        color: values.color,
+        branchId: branchComboValue?.id,
+        active: values.active,
+        updatedById: userId,
+        assignedSectors: {
+          createMany: {
+            data: (values.linkedSectors || []).map((sector) => ({
+              sectorId: sector.id,
+              createdById: userId,
+              updatedById: userId,
+            })),
+          },
+        },
+      },
+    });
+
+    await fetchCaregiverSector('deleteMany', [
+      { where: { caregiverId: caregiver.id, OR: [{ archived: true }, { archived: false }] } },
+    ]);
     const updateRes: Data | null = await fetchCaregiver(
       'update',
       [
@@ -224,19 +197,35 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
           data: {
             firstname: values.firstname,
             lastname: values.lastname,
+            slug: toSlug([values.firstname, values.lastname].join(' ')),
             bigWeekType: values.bigWeekType,
             color: values.color,
-            branch: { connect: { id: branchComboValue?.id } },
+            branchId: branchComboValue?.id,
             active: values.active,
-            updatedBy: { connect: { id: userId } },
+            updatedById: userId,
           },
           where: { id: caregiver.id },
         },
       ],
       '/',
     ).catch(() => null);
+    const assignedSectorsRes: FullCaregiver['assignedSectors'] | null = await fetchCaregiverSector(
+      'createMany',
+      [
+        {
+          data: (values.linkedSectors || []).map((sector) => ({
+            sectorId: sector.id,
+            createdById: userId,
+            updatedById: userId,
+          })),
+        },
+      ],
+    ).catch(() => null);
 
-    if (!updateRes) {
+    console.log('UPDATE RES', updateRes);
+    console.log('ASSIGNED SECTORS RES', assignedSectorsRes);
+
+    if (!updateRes || !assignedSectorsRes) {
       notifications.show({
         title: 'Erreur',
         message: 'Erreur lors de la modification du soignant',
@@ -269,24 +258,6 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
     setLoading(false);
   }
 
-  const branchSearchChange = useDebouncedCallback(handleBranchSearch, 300);
-
-  function handleComboOptionSubmit(val: string) {
-    const selectedBranch = branchesData.find((branch) => branch.id === val) || caregiver.branch;
-    setBranchComboValue(selectedBranch);
-    setBranchComboSearch(formatBranchName(selectedBranch));
-    form.setFieldValue('branchId', selectedBranch?.id);
-    fetchBranchSectors(selectedBranch?.id);
-    branchCombobox.closeDropdown();
-  }
-
-  function handleComboInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    branchCombobox.openDropdown();
-    branchCombobox.updateSelectedOptionIndex();
-    setBranchComboSearch(event.currentTarget.value);
-    branchSearchChange(event.currentTarget.value);
-  }
-
   async function handleDelete() {
     modals.openConfirmModal({
       title: 'Supprimer ce soignant',
@@ -296,7 +267,11 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
       children: <Text>Êtes-vous sûr de vouloir supprimer ce soignant ?</Text>,
       async onConfirm() {
         setLoading(true);
-        const deleteRes = await fetchCaregiver('delete', [{ where: { id: caregiver.id } }], '/');
+        const deleteRes = await fetchCaregiver(
+          'delete',
+          [{ where: { id: caregiver.id }, include: { assignedSectors: true, assignments: true } }],
+          '/',
+        );
         if (!deleteRes) {
           notifications.show({
             title: 'Erreur',
@@ -317,6 +292,22 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
       },
     });
   }
+
+  useEffect(() => {
+    if (branchComboValue?.id) {
+      fetchBranch('findUnique', [
+        { where: { id: branchComboValue.id, active: true }, include: { sectors: true } },
+      ]).then((branch) => {
+        if (branch) {
+          setSectorsData(branch.sectors);
+        }
+      });
+    } else {
+      setSectorsData([]);
+      form.setFieldValue('linkedSectors', []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchComboValue?.id]);
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -364,123 +355,41 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
           {...defaultProps('color')}
         />
 
-        <Combobox
-          store={branchCombobox}
-          withinPortal={false}
-          onOptionSubmit={handleComboOptionSubmit}
-        >
-          <Combobox.Target>
-            <InputBase
-              key={form.key('branchId')}
-              {...defaultProps('branchId')}
-              pointer={!readOnly && !branchesLoading && !branchCombobox.dropdownOpened}
-              rightSection={
-                readOnly ? null : branchesLoading ? <Loader size={18} /> : <Combobox.Chevron />
-              }
-              label='Branche'
-              rightSectionPointerEvents='none'
-              value={branchComboSearch}
-              onChange={handleComboInputChange}
-              onClick={() => !readOnly && branchCombobox.openDropdown()}
-              onFocus={() => !readOnly && branchCombobox.openDropdown()}
-              onBlur={() => {
-                if (readOnly) return;
-                branchCombobox.closeDropdown();
-                setBranchComboSearch(
-                  branchComboValue ? formatBranchName(branchComboValue) : branchComboSearch || '',
-                );
-              }}
-              placeholder='Rechercher une branche'
-            />
-          </Combobox.Target>
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              {branchesLoading ? (
-                <Combobox.Empty>Chargement...</Combobox.Empty>
-              ) : branchesData.length > 0 ? (
-                (branchesData || []).map((item) => (
-                  <Combobox.Option
-                    key={item.id}
-                    value={item.id}
-                    selected={item.id === branchComboValue?.id}
-                  >
-                    {formatBranchName(item)}
-                  </Combobox.Option>
-                ))
-              ) : (
-                <Combobox.Empty>Aucune branche trouvée</Combobox.Empty>
-              )}
-            </Combobox.Options>
-          </Combobox.Dropdown>
-        </Combobox>
-
-        <Combobox
-          store={sectorsCombobox}
-          withinPortal={false}
-          onOptionSubmit={(value: string) => {
-            if (readOnly || sectorsLoading) return;
-            const sector = sectorsData.find((s) => s.id === value);
-            if (sector) {
-              const linkedSectors = form.getInputProps('linkedSectors').value || [];
-              const sectorExists = linkedSectors.some((s: Sector) => s.id === sector.id);
-              const updatedSectors = sectorExists
-                ? linkedSectors.filter((s: Sector) => s.id !== sector.id)
-                : [...linkedSectors, sector];
-              form.setFieldValue('linkedSectors', updatedSectors);
-            }
+        <BranchSelector
+          value={branchComboValue}
+          onChange={(branch) => {
+            setBranchComboValue(branch as Data['branch']);
+            form.setFieldValue('branchId', branch?.id || '');
+            form.setFieldValue('linkedSectors', []);
           }}
-        >
-          <Combobox.DropdownTarget>
-            <PillsInput
-              pointer={!readOnly}
-              key={form.key('linkedSectors')}
-              {...defaultProps('linkedSectors')}
-              label='Secteurs associés'
-              rightSection={
-                readOnly ? null : sectorsLoading ? <Loader size={18} /> : <Combobox.Chevron />
-              }
-              onClick={() => !readOnly && sectorsCombobox.openDropdown()}
-              onFocus={() => !readOnly && sectorsCombobox.openDropdown()}
-            >
-              <Pill.Group>
-                {form.getInputProps('linkedSectors').value.length > 0 ? (
-                  form
-                    .getInputProps('linkedSectors')
-                    .value.map((sector: Sector) => (
-                      <Pill key={sector.id}>
-                        {sectorsData.find((s) => s.id === sector.id)?.name || 'Secteur inconnu'}
-                      </Pill>
-                    ))
-                ) : (
-                  <Input.Placeholder>Aucun secteur associé</Input.Placeholder>
-                )}
-              </Pill.Group>
-            </PillsInput>
-          </Combobox.DropdownTarget>
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              {sectorsLoading ? (
-                <Combobox.Empty>Chargement...</Combobox.Empty>
-              ) : sectorsData.length > 0 ? (
-                sectorsData.map((sector) => (
-                  <Combobox.Option key={sector.id} value={sector.id}>
-                    <Group align='center' gap='xs'>
-                      <Checkbox
-                        readOnly
-                        checked={form
-                          .getInputProps('linkedSectors')
-                          .value.some((s: Sector) => s.id === sector.id)}
-                      />
-                      {sector.name}
-                    </Group>
-                  </Combobox.Option>
-                ))
-              ) : (
-                <Combobox.Empty>Aucun secteur trouvé</Combobox.Empty>
-              )}
-            </Combobox.Options>
-          </Combobox.Dropdown>
-        </Combobox>
+          readOnly={readOnly}
+          required={form.isDirty('branchId')}
+          error={form.getInputProps('branchId').error}
+          size='md'
+        />
+
+        <MultiSelect
+          label='Secteurs associés'
+          placeholder={
+            form.getInputProps('linkedSectors').value?.length ? undefined : 'Aucun secteur associé'
+          }
+          key={form.key('linkedSectors')}
+          {...defaultProps('linkedSectors', 'styles.required')}
+          searchable
+          rightSection={readOnly ? <div /> : <Combobox.Chevron />}
+          value={
+            form.getInputProps('linkedSectors').value?.map((sector: Sector) => sector.id) || []
+          }
+          onChange={(sectorIds) => {
+            const selectedSectors = sectorsData.filter((sector) => sectorIds.includes(sector.id));
+            form.setFieldValue('linkedSectors', selectedSectors);
+          }}
+          data={sectorsData.map((sector) => ({
+            value: sector.id,
+            label: sector.name || 'Secteur sans nom',
+          }))}
+          disabled={!branchComboValue?.id}
+        />
 
         <Input.Wrapper label='Actif' {...defaultProps('active')}>
           <Switch
