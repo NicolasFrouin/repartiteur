@@ -5,6 +5,7 @@ import { CaregiverBigWeekType, CaregiverTime, Sector } from '@/generated/client'
 import { BIG_WEEK_DAYS, getWeekDay, getWeekNumber, toSlug } from '@/lib/utils';
 import { FullBranch, FullCaregiver } from '@/types/utils';
 import {
+  ActionIcon,
   Box,
   Button,
   ColorInput,
@@ -17,6 +18,7 @@ import {
   Switch,
   Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
@@ -26,6 +28,7 @@ import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import BranchSelector from './BranchSelector';
+import { FaFill } from 'react-icons/fa6';
 
 type Data = FullCaregiver & { linkedSectors?: Sector[] };
 
@@ -272,6 +275,12 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
     });
   }
 
+  function selectAllSectors() {
+    if (!branchComboValue?.id) return;
+    const allSectors = sectorsData.map((sector) => ({ id: sector.id }) as Sector);
+    form.setFieldValue('linkedSectors', allSectors);
+  }
+
   useEffect(() => {
     if (branchComboValue?.id) {
       fetchBranch('findUnique', [
@@ -355,6 +364,19 @@ export default function CaregiverDetails({ caregiver = defaultCaregiver, userId 
           key={form.key('linkedSectors')}
           {...defaultProps('linkedSectors', 'styles.required')}
           searchable
+          leftSection={
+            !readOnly && (
+              <Tooltip
+                label='Ajouter tous les secteurs de la branche sélectionnée'
+                position='top'
+                withArrow
+              >
+                <ActionIcon onClick={selectAllSectors} disabled={!branchComboValue?.id}>
+                  <FaFill />
+                </ActionIcon>
+              </Tooltip>
+            )
+          }
           rightSection={readOnly ? <div /> : <Combobox.Chevron />}
           value={
             form.getInputProps('linkedSectors').value?.map((sector: Sector) => sector.id) || []
