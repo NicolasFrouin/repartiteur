@@ -92,3 +92,17 @@ export async function fetchAssignment<T extends typeof prisma.assignment>(
   }
   return res;
 }
+
+export async function fetchCaregiverSector<T extends typeof prisma.caregiverSector>(
+  functionName: keyof T,
+  // @ts-expect-error ---
+  args: Parameters<T[keyof T]> = [] as unknown as Parameters<T[keyof T]>,
+  pathToRevalidate?: string,
+) {
+  // @ts-expect-error ---
+  const res = await prisma.caregiverSector[functionName](...args);
+  if (pathToRevalidate) {
+    revalidatePath(pathToRevalidate);
+  }
+  return res;
+}
