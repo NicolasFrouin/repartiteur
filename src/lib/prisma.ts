@@ -28,7 +28,8 @@ const prisma =
       }): Promise<PrismaPromise<unknown>> => {
         if (LOG) {
           console.log(`[PRISMA] ${model}::${operation}`);
-          console.log(`[PRISMA] Args before : ${JSON.stringify(args)}`);
+          if (process.env.PRISMA_LOG === 'all')
+            console.log(`[PRISMA] Args before : ${JSON.stringify(args)}`);
         }
 
         const ogOperation = operation;
@@ -68,7 +69,8 @@ const prisma =
             break;
         }
         if (LOG) {
-          console.log(`[PRISMA] Args after : ${JSON.stringify(args)}`);
+          if (process.env.PRISMA_LOG === 'all')
+            console.log(`[PRISMA] Args after : ${JSON.stringify(args)}`);
         }
         if (operation !== ogOperation) {
           // @ts-expect-error ---

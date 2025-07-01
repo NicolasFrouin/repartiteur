@@ -1,4 +1,12 @@
-import { Assignment, Branch, Caregiver, Mission, Sector, User } from '@/generated/client';
+import {
+  Assignment,
+  Branch,
+  Caregiver,
+  CaregiverSector,
+  Mission,
+  Sector,
+  User,
+} from '@/generated/client';
 
 type NotRequired =
   | 'id'
@@ -18,14 +26,23 @@ export type BranchesSectorsMissions = Branch & { sectors: (Sector & { missions: 
 /** @alias {@link BranchesSectorsMissions} */
 export type BSM = BranchesSectorsMissions;
 
-export type FullCaregiver = Caregiver & { branch: Branch; updatedBy?: User | null };
+export type FullCaregiver = Caregiver & {
+  branch: Branch;
+  assignedSectors: CaregiverSector[];
+  updatedBy?: User | null;
+};
 export type FullAssignment = Assignment & {
   caregiver: Caregiver;
   mission: Mission;
   updatedBy?: User | null;
 };
 export type FullBranch = Branch & { sectors: Sector[]; updatedBy?: User | null };
-export type FullSector = Sector & { missions: Mission[]; branch: Branch; updatedBy?: User | null };
+export type FullSector = Sector & {
+  missions: Mission[];
+  branch: Branch;
+  assignedCaregivers?: Caregiver[];
+  updatedBy?: User | null;
+};
 export type FullMission = Mission & {
   sector: Omit<FullSector, 'missions'>;
   updatedBy?: User | null;
