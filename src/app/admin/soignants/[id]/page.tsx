@@ -30,7 +30,10 @@ export default async function Page({ params }: Props) {
   const session = await auth();
 
   const { id } = await params;
-  const caregiver = await prisma.caregiver.findUnique({ where: { id }, include: { branch: true } });
+  const caregiver = await prisma.caregiver.findUnique({
+    where: { id },
+    include: { branch: true, assignedSectors: true },
+  });
 
   if (!caregiver) {
     return notFound();
