@@ -42,6 +42,31 @@ export async function generateWeekCalendar(
   calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
   regenerate = false,
   userId: string,
+): Promise<FullAssignment[] | false> {
+  try {
+    l(0, 'Starting calendar generation');
+
+    const assignments = await calendarGenerator(
+      forbiddenSectors,
+      calendarOptions,
+      regenerate,
+      userId,
+    );
+
+    l(0, 'Calendar generation completed successfully');
+    return assignments;
+  } catch (error) {
+    l(0, 'Error during calendar generation:', error);
+    console.error('Error during calendar generation:', error);
+    return false;
+  }
+}
+
+async function calendarGenerator(
+  forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>,
+  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
+  regenerate = false,
+  userId: string,
 ): Promise<FullAssignment[]> {
   logger.reset();
 
