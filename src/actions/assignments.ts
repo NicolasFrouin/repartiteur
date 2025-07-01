@@ -93,6 +93,7 @@ async function calendarGenerator(
     for (const branch of bsm) {
       l(1, `Branch : ${branch.name}`);
       const branchCaregivers = await prisma.caregiver.findMany({
+        include: { assignedSectors: true },
         where: {
           active: true,
           branchId: branch.id,
@@ -112,7 +113,9 @@ async function calendarGenerator(
 
           l(5, 'Caregivers to assign:', caregiversToAssign.length);
           const eligibleCaregivers = caregiversToAssign.filter(
-            (c) => !forbiddenSectors[c.id]?.includes(sector.id),
+            (c) =>
+              c.assignedSectors.some((s) => s.sectorId === sector.id) &&
+              !forbiddenSectors[c.id]?.includes(sector.id),
           );
 
           const assignedCaregivers = eligibleCaregivers.splice(
@@ -170,7 +173,9 @@ async function calendarGenerator(
 
           l(5, 'Caregivers to assign:', caregiversToAssign.length);
           const eligibleCaregivers = caregiversToAssign.filter(
-            (c) => !forbiddenSectors[c.id]?.includes(sector.id),
+            (c) =>
+              c.assignedSectors.some((s) => s.sectorId === sector.id) &&
+              !forbiddenSectors[c.id]?.includes(sector.id),
           );
 
           const assignedCaregivers = eligibleCaregivers.splice(
