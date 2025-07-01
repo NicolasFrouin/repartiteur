@@ -28,7 +28,7 @@ export type BSM = BranchesSectorsMissions;
 
 export type FullCaregiver = Caregiver & {
   branch: Branch;
-  assignedSectors: CaregiverSector[];
+  assignedSectors: FullCaregiverSector[];
   updatedBy?: User | null;
 };
 export type FullAssignment = Assignment & {
@@ -47,5 +47,6 @@ export type FullMission = Mission & {
   sector: Omit<FullSector, 'missions'>;
   updatedBy?: User | null;
 };
+export type FullCaregiverSector = CaregiverSector & { caregiver?: Caregiver; sector?: Sector };
 
 export type TCalendarOptions = { date: string; recurence: boolean };

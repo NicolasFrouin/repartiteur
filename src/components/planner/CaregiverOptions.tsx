@@ -1,9 +1,8 @@
 'use client';
 
 import { fetchCaregiver } from '@/actions/common';
-import { getBranchesToMissions } from '@/actions/data';
-import { Branch, Caregiver, Sector } from '@/generated/client';
-import { BSM } from '@/types/utils';
+import { Caregiver, Sector } from '@/generated/client';
+import { FullCaregiver } from '@/types/utils';
 import {
   Anchor,
   Box,
@@ -22,8 +21,6 @@ import { FaTimes } from 'react-icons/fa';
 
 const metadata: Metadata & { title: string } = { title: 'Planificateur - Options de soignants' };
 
-type CaregiversAndBranch = Caregiver & { branch: Branch };
-
 interface Props {
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>;
   setForbiddenSectors: React.Dispatch<
@@ -37,8 +34,7 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   // eslint-disable-next-line
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [caregivers, setCaregivers] = useState<CaregiversAndBranch[]>([]);
-  const [data, setData] = useState<BSM[]>([]);
+  const [caregivers, setCaregivers] = useState<FullCaregiver[]>([]);
 
   const tableHeaders: React.ReactNode[] = [
     <Text key={'h-name'} fw={'bold'}>
@@ -52,15 +48,14 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
     </Text>,
   ];
   const tableBody: React.ReactNode[][] = caregivers.map((c) => {
-    const branch = data.find((b) => b.id === c.branchId);
     return [
       <Anchor key={`${c.id}-name`} component={Link} href={`/admin/soignants/${c.id}`}>
         {[c.firstname, c.lastname].join(' ')}
       </Anchor>,
       <Anchor key={`${c.id}-branch`} component={Link} href={`/admin/branches/${c.branchId}`}>
-        {branch ? branch.name : 'Aucune branche'}
+        {c.branch ? c.branch.name : 'Aucune branche'}
       </Anchor>,
-      branch ? (
+      c.branch ? (
         <Chip.Group
           key={`${c.id}-sectors`}
           multiple
@@ -75,17 +70,20 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
             gap={'xs'}
             className={'flex-col md:flex-row md:flex-wrap md:[td:has(&)]:max-w-xs'}
           >
-            {branch.sectors.map((s) => (
-              <Chip
-                key={`${c.id}-${s.id}`}
-                value={s.id}
-                color={'red'}
-                icon={<FaTimes />}
-                styles={{ label: { border: `2px solid ${s.color || '#ddd'}` } }}
-              >
-                {s.name}
-              </Chip>
-            ))}
+            {c.assignedSectors?.map(
+              (as) =>
+                as.sector && (
+                  <Chip
+                    key={`${c.id}-${as.sector.id}`}
+                    value={as.sector.id}
+                    color={'red'}
+                    icon={<FaTimes />}
+                    styles={{ label: { border: `2px solid ${as.sector.color || '#ddd'}` } }}
+                  >
+                    {as.sector.name}
+                  </Chip>
+                ),
+            )}
           </Flex>
         </Chip.Group>
       ) : (
@@ -103,17 +101,15 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
       const caregiversData = await fetchCaregiver('findMany', [
         {
           where: { active: true },
-          include: { branch: true },
+          include: { branch: true, assignedSectors: { include: { sector: true } } },
           take: pageSize,
           skip: (page - 1) * pageSize,
           orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }],
         },
       ]);
-      const allData = await getBranchesToMissions();
 
       setTotal(totalData);
       setCaregivers(caregiversData);
-      setData(allData);
       setLoading(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -130,7 +126,7 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   }, []);
 
   return (
-    <div>
+    <Box>
       <Flex direction={'column'} gap={'md'}>
         <Box pos={'relative'}>
           <LoadingOverlay
@@ -149,6 +145,6 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
           />
         </Group>
       </Flex>
-    </div>
+    </Box>
   );
 }
