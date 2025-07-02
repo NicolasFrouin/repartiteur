@@ -30,7 +30,7 @@ export default function Page() {
 
   function handleSetCalendarOptions(value: SetStateAction<TCalendarOptions>) {
     setCalendarOptions(value);
-    setWeekCalendar([]);
+    setWeekCalendar(null);
   }
 
   const STEPS: StepProps[] = [
