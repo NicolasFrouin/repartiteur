@@ -2,17 +2,18 @@
 'use client';
 
 import { generateWeekCalendar } from '@/actions/assignments';
+import { fetchAssignment } from '@/actions/common';
 import { getBranchesToMissions } from '@/actions/data';
 import { Caregiver, Sector } from '@/generated/client';
-import { DEFAULT_CALENDAR_OPTIONS, getWeekNumber } from '@/lib/utils';
+import { DEFAULT_CALENDAR_OPTIONS, getDate, getWeekDays, getWeekNumber } from '@/lib/utils';
 import { BSM, FullAssignment, TCalendarOptions } from '@/types/utils';
 import { Box, Button, LoadingOverlay, Stack, Text, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { Metadata } from 'next';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import CaregiversPlanning from '../caregiver/CaregiversPlanning';
 import NotAuthorized from '../error/NotAuthorized';
-import { notifications } from '@mantine/notifications';
 
 export const metadata: Metadata & { title: string } = { title: 'Planificateur - Calendrier' };
 
@@ -72,10 +73,26 @@ export default function CalendarTouchUp({
         setData(branchesData);
       }
 
+      if (weekCalendar === null) {
+        const existingWeekCalendar: FullAssignment[] = await fetchAssignment('findMany', [
+          {
+            where: { date: { in: getWeekDays(new Date(calendarOptions.date)).map(getDate) } },
+            include: { caregiver: true, mission: true, updatedBy: true },
+          },
+        ]).catch(() => []);
+        console.log('existingWeekCalendar', existingWeekCalendar);
+        if (existingWeekCalendar.length > 0) {
+          setWeekCalendar(existingWeekCalendar);
+          setGenerated(true);
+        } else {
+          setGenerated(false);
+        }
+      }
+
       setLoading(false);
     }
     fetchData();
-  }, [branchesData]);
+  }, [branchesData, calendarOptions.date, setWeekCalendar, weekCalendar]);
 
   const renderLoaderProps = () =>
     generated
