@@ -39,7 +39,7 @@ const l = DEV
 
 export async function generateWeekCalendar(
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>,
-  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
+  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurrence: false },
   regenerate = false,
   userId: string,
 ): Promise<FullAssignment[] | false> {
@@ -64,7 +64,7 @@ export async function generateWeekCalendar(
 
 async function calendarGenerator(
   forbiddenSectors: Record<Caregiver['id'], Sector['id'][]>,
-  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurence: false },
+  calendarOptions: TCalendarOptions = { date: new Date().toISOString(), recurrence: false },
   regenerate = false,
   userId: string,
 ): Promise<FullAssignment[]> {

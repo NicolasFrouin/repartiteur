@@ -8,5 +8,5 @@ export const MAIN_CONTENT_HEIGHT =
 
 export const DEFAULT_CALENDAR_OPTIONS: TCalendarOptions = {
   date: dayjs().add(1, 'week').toISOString(),
-  recurence: false,
+  recurrence: false,
 };

@@ -92,11 +92,11 @@ export default function CalendarOptions({
           <Switch
             mt={4}
             size='lg'
-            checked={calendarOptions.recurence}
+            checked={calendarOptions.recurrence}
             onChange={(event) =>
               setCalendarOptions((p) => ({
                 ...p,
-                recurence: event.currentTarget?.checked ?? event.target.checked,
+                recurrence: event.currentTarget?.checked ?? event.target.checked,
               }))
             }
             onLabel='Oui'

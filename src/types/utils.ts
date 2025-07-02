@@ -86,4 +86,4 @@ export type FullMission = Mission & {
  */
 export type FullCaregiverSector = CaregiverSector & { caregiver?: Caregiver; sector?: Sector };
 
-export type TCalendarOptions = { date: string; recurence: boolean };
+export type TCalendarOptions = { date: string; recurrence: boolean };
