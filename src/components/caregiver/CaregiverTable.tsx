@@ -16,14 +16,16 @@ import {
   Table,
   Text,
 } from '@mantine/core';
-import dayjs from 'dayjs';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaUserPen } from 'react-icons/fa6';
 import ColorCell from '../common/table/ColorCell';
 
-type Data = FullCaregiver & { branch: { name: string } };
+type Data = {
+  branch: { name: string };
+  assignedSectors: { sector: { name: string } }[];
+} & FullCaregiver;
 
 export default function CaregiverTable() {
   const { data: session } = useSession();
@@ -37,7 +39,14 @@ export default function CaregiverTable() {
   const [total, setTotal] = useState(0);
   const [data, setData] = useState<Data[]>([]);
 
-  const tableHeaders: React.ReactNode[] = ['Nom', 'État', 'Branche', 'Couleur', 'Actions'];
+  const tableHeaders: React.ReactNode[] = [
+    'Nom',
+    'État',
+    'Branche',
+    'Secteurs',
+    'Couleur',
+    'Actions',
+  ];
   if (hasAccess) {
     tableHeaders.splice(-1, 0, 'Modifié par', 'Modifié le');
   }
@@ -48,9 +57,12 @@ export default function CaregiverTable() {
         {[c.firstname, c.lastname].join(' ')}
       </Anchor>,
       <Text key={`${c.id}-status`}>{c.active ? 'Actif' : 'Inactif'}</Text>,
-      <Link key={`${c.id}-branch`} href={`/admin/branches/${c.branchId}`}>
+      <Anchor key={`${c.id}-branch`} component={Link} href={`/admin/branches/${c.branchId}`}>
         {c.branch.name}
-      </Link>,
+      </Anchor>,
+      <Text key={`${c.id}-sectors`} size='sm'>
+        {c.assignedSectors.map((s) => s.sector.name).join(', ') || '-'}
+      </Text>,
       <ColorCell key={`${c.id}-color`} color={c.color} />,
       ...(hasAccess
         ? [
@@ -82,20 +94,9 @@ export default function CaregiverTable() {
       const caregivers = await fetchCaregiver('findMany', [
         {
           include: {
-            branch: true,
+            branch: { select: { name: true } },
             updatedBy: hasAccess,
-            _count: {
-              select: {
-                assignments: {
-                  where: {
-                    date: {
-                      gte: dayjs().startOf('week').toDate(),
-                      lte: dayjs().endOf('week').toDate(),
-                    },
-                  },
-                },
-              },
-            },
+            assignedSectors: { select: { sector: { select: { name: true } } } },
           },
           take: pageSize,
           skip: (page - 1) * pageSize,
