@@ -6,7 +6,7 @@ import CaregiverOptions from '@/components/planner/CaregiverOptions';
 import { Caregiver, Sector } from '@/generated/client';
 import { DEFAULT_CALENDAR_OPTIONS } from '@/lib/utils';
 import { FullAssignment, TCalendarOptions } from '@/types/utils';
-import { Anchor, Box, Breadcrumbs, Button, Group, Stepper, Text } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Button, Group, Stack, Stepper, Text } from '@mantine/core';
 import Link from 'next/link';
 import { SetStateAction, useState } from 'react';
 
@@ -110,6 +110,21 @@ export default function Page() {
             {step.component}
           </Stepper.Step>
         ))}
+        {active === STEPS.length && (
+          <Stepper.Completed>
+            <Stack justify={'center'} mb={'md'}>
+              <Text ta='center' fw={'bolder'} size='lg'>
+                Le calendrier a été généré avec succès !
+              </Text>
+              <Text ta='center' size='sm' mt='xs'>
+                Vous pouvez quitter cette page ou revenir en arrière pour modifier le calendrier.
+              </Text>
+              <Anchor component={Link} href={'/'} ta={'center'} mt='md'>
+                Retour à l&apos;accueil
+              </Anchor>
+            </Stack>
+          </Stepper.Completed>
+        )}
       </Stepper>
       <Group justify={'center'} mt='lg'>
         <Button onClick={prevStep} loading={loading} variant={'outline'} disabled={active === 0}>
