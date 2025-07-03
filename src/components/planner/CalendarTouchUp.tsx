@@ -12,7 +12,7 @@ import { notifications } from '@mantine/notifications';
 import { Metadata } from 'next';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import CaregiversPlanning from '../caregiver/CaregiversPlanning';
+import CaregiversPlanningTouchUp from '../caregiver/CaregiversPlanningTouchUp';
 import NotAuthorized from '../error/NotAuthorized';
 
 export const metadata: Metadata & { title: string } = { title: 'Planificateur - Calendrier' };
@@ -76,11 +76,13 @@ export default function CalendarTouchUp({
       if (weekCalendar === null) {
         const existingWeekCalendar: FullAssignment[] = await fetchAssignment('findMany', [
           {
-            where: { date: { in: getWeekDays(new Date(calendarOptions.date)).map(getDate) } },
+            where: {
+              date: { in: getWeekDays(new Date(calendarOptions.date)).map(getDate) },
+              archived: false,
+            },
             include: { caregiver: true, mission: true, updatedBy: true },
           },
         ]).catch(() => []);
-        console.log('existingWeekCalendar', existingWeekCalendar);
         if (existingWeekCalendar.length > 0) {
           setWeekCalendar(existingWeekCalendar);
           setGenerated(true);
@@ -123,11 +125,13 @@ export default function CalendarTouchUp({
           overlayProps={{ radius: 'sm', blur: 2 }}
           loaderProps={renderLoaderProps()}
         />
-        <CaregiversPlanning
+        <CaregiversPlanningTouchUp
           weekNumber={getWeekNumber(new Date(calendarOptions.date))}
           branchesData={data}
           assignmentsData={weekCalendar ?? undefined}
+          setWeekCalendar={setWeekCalendar}
           options={{ ScrollArea: { className: 'h-[65vh]' } }}
+          forbiddenSectors={forbiddenSectors}
         />
       </Box>
       {generated && (
