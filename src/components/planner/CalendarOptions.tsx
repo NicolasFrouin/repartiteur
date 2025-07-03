@@ -7,6 +7,9 @@ import { Metadata } from 'next';
 import { useEffect, useState } from 'react';
 import { FaCalendarDay } from 'react-icons/fa6';
 
+// TODO : Remove this constant when the feature is ready
+const SHOW_RECURRENCE_SWITCH = false;
+
 const metadata: Metadata & { title: string } = { title: 'Planificateur - Options de génération' };
 
 interface Props {
@@ -84,25 +87,38 @@ export default function CalendarOptions({
             };
           }}
         />
-        <Input.Wrapper
-          size='md'
-          label='Récurrence'
-          description='Les soignants affectés à une section la semaine précédente pourront-ils être affectés à la même section cette semaine ?'
-        >
-          <Switch
-            mt={4}
-            size='lg'
-            checked={calendarOptions.recurrence}
-            onChange={(event) =>
-              setCalendarOptions((p) => ({
-                ...p,
-                recurrence: event.currentTarget?.checked ?? event.target.checked,
-              }))
+        {SHOW_RECURRENCE_SWITCH && (
+          <Input.Wrapper
+            size='md'
+            label='Récurrence'
+            description={
+              <>
+                <Text size='sm'>
+                  Les soignants affectés à un secteur la semaine précédente pourront-ils être
+                  affectés à la même section cette semaine ?
+                </Text>
+                <Text size='sm'>
+                  Les soignants affectés à 1 seul secteur ne sont pas affectés et pourront être
+                  affectés à leur secteur
+                </Text>
+              </>
             }
-            onLabel='Oui'
-            offLabel='Non'
-          />
-        </Input.Wrapper>
+          >
+            <Switch
+              mt={4}
+              size='lg'
+              checked={calendarOptions.recurrence}
+              onChange={(event) =>
+                setCalendarOptions((p) => ({
+                  ...p,
+                  recurrence: event.currentTarget?.checked ?? event.target.checked,
+                }))
+              }
+              onLabel='Oui'
+              offLabel='Non'
+            />
+          </Input.Wrapper>
+        )}
       </Stack>
     </Box>
   );
