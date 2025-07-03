@@ -53,14 +53,19 @@ const prisma =
           case 'deleteMany':
             let forceDelete = false;
 
-            if (args?.where?.OR?.length >= 2) {
-              const deleteChecks = [false, false];
-              for (const arg of args.where.OR) {
-                if (arg.archived !== undefined) {
-                  deleteChecks[Number(arg.archived)] = true;
+            if (args?.where?.forceDelete === true) {
+              forceDelete = true;
+              delete args.where.forceDelete;
+            } else {
+              if (args?.where?.OR?.length >= 2) {
+                const deleteChecks = [false, false];
+                for (const arg of args.where.OR) {
+                  if (arg.archived !== undefined) {
+                    deleteChecks[Number(arg.archived)] = true;
+                  }
                 }
+                forceDelete = deleteChecks.every((v) => v === true);
               }
-              forceDelete = deleteChecks.every((v) => v === true);
             }
             if (!forceDelete) {
               operation = operation === 'delete' ? 'update' : 'updateMany';
