@@ -7,8 +7,10 @@ import { seedUsers } from './users';
 async function main() {
   const users = await seedUsers(prisma);
   const branches = await seedBranches(prisma, users);
-  await seedCaregivers(prisma, users, branches);
-  await seedAssignments(prisma);
+  if (process.env.NODE_ENV !== 'production' && false) {
+    await seedCaregivers(prisma, users, branches);
+    await seedAssignments(prisma);
+  }
 }
 
 main()

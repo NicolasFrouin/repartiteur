@@ -10,7 +10,7 @@
     "prisma:reset": "npm run prisma:db:push && npm run prisma:db:seed",
     "prisma:generate": "npx prisma generate",
     "prisma:db:push": "npx prisma db push --force-reset",
-    "prisma:db:seed": "npx prisma db seed"
+    "prisma:db:seed": "dotenv -c -- npx prisma db seed"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",
