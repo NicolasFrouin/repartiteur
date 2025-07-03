@@ -10,6 +10,7 @@ import {
   Flex,
   Group,
   LoadingOverlay,
+  Notification,
   Pagination,
   Table,
   Text,
@@ -18,6 +19,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import { FaInfo } from 'react-icons/fa6';
 
 const metadata: Metadata & { title: string } = { title: 'Planificateur - Options de soignants' };
 
@@ -128,6 +130,10 @@ export default function CaregiverOptions({ forbiddenSectors, setForbiddenSectors
   return (
     <Box>
       <Flex direction={'column'} gap={'md'}>
+        <Notification title={'Remarque !'} icon={<FaInfo />} withCloseButton={false}>
+          Si un soignant n&apos;est affecté qu&apos;à un seul secteur et que ce secteur est coché,
+          le soignant ne travaillera pas de la semaine !
+        </Notification>
         <Box pos={'relative'}>
           <LoadingOverlay
             visible={loading}
