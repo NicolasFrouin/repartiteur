@@ -43,8 +43,10 @@ const prisma =
           case 'update':
           case 'updateMany':
             if (
-              args?.where?.archived === undefined &&
-              args?.where?.OR?.every((arg: Record<string, unknown>) => arg.archived === undefined)
+              !(
+                args?.where?.archived !== undefined ||
+                args?.where?.OR?.every((arg: Record<string, unknown>) => arg.archived !== undefined)
+              )
             ) {
               args = { ...(args || {}), where: { ...(args.where || {}), archived: false } };
             }
