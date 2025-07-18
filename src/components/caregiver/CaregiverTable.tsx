@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchCaregiver } from '@/actions/common';
-import { Role } from '@/generated/client';
+import { Role, User } from '@/generated/client';
 import { canAccess } from '@/lib/utils';
 import { FullCaregiver } from '@/types/utils';
 import {
@@ -19,8 +19,9 @@ import {
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { FaUserPen } from 'react-icons/fa6';
+import { FaTrash, FaUserPen } from 'react-icons/fa6';
 import ColorCell from '../common/table/ColorCell';
+import { modals } from '@mantine/modals';
 
 type Data = {
   branch: { name: string };
@@ -38,6 +39,26 @@ export default function CaregiverTable() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [data, setData] = useState<Data[]>([]);
+
+  function openDeleteConfirmModal(id: User['id']) {
+    modals.openConfirmModal({
+      title: 'Supprimer le soignant',
+      children: (
+        <Text size='sm'>
+          Êtes-vous sûr de vouloir supprimer ce soignant ? Cette action est irréversible.
+        </Text>
+      ),
+      labels: { confirm: 'Supprimer', cancel: 'Annuler' },
+      confirmProps: { color: 'red' },
+      onConfirm: () => handleDeleteUser(id),
+    });
+  }
+
+  async function handleDeleteUser(id: User['id']) {
+    setLoading(true);
+    await fetchCaregiver('delete', [{ where: { id } }]);
+    setLoading(false);
+  }
 
   const tableHeaders: React.ReactNode[] = [
     'Nom',
@@ -72,15 +93,29 @@ export default function CaregiverTable() {
             </Text>,
           ]
         : []),
-      <ActionIcon
-        key={`${c.id}-action`}
-        variant='subtle'
-        color='blue'
-        href={`/admin/soignants/${c.id}`}
-        component={Link}
-      >
-        <FaUserPen size={20} />
-      </ActionIcon>,
+      <ActionIcon.Group key={`${c.id}-actions`}>
+        <ActionIcon
+          className='transition-transform hover:scale-110'
+          component={Link}
+          href={`/admin/soignants/${c.id}/edit`}
+          variant='light'
+          color='blue'
+          size='md'
+          title='Modifier le soignant'
+        >
+          <FaUserPen />
+        </ActionIcon>
+        <ActionIcon
+          className='transition-transform hover:scale-110'
+          onClick={openDeleteConfirmModal.bind(null, c.id)}
+          variant='light'
+          color='red'
+          size='md'
+          title='Supprimer le soignant'
+        >
+          <FaTrash />
+        </ActionIcon>
+      </ActionIcon.Group>,
     ];
   });
 
@@ -93,6 +128,7 @@ export default function CaregiverTable() {
 
       const caregivers = await fetchCaregiver('findMany', [
         {
+          where: {},
           include: {
             branch: { select: { name: true } },
             updatedBy: hasAccess,
