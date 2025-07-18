@@ -44,7 +44,7 @@ export default function Login({ searchParams }: Props) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm({
-    initialValues: { email: '', password: '' },
+    initialValues: { email: 'superadmin@app.com', password: 'pistache' },
     validate: zodResolver(signInSchema),
   });
 

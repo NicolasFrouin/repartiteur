@@ -1,5 +1,4 @@
 import {
-  Branch,
   Caregiver,
   CaregiverBigWeekType,
   CaregiverTime,
@@ -7,11 +6,12 @@ import {
   User,
 } from '@/generated/client';
 import { caregivers, randomColor, toSlug } from '@/lib/utils';
+import { FullBranch } from '@/types/utils';
 
 export async function seedCaregivers(
   prisma: PrismaClient,
   users: User[],
-  branches: Branch[],
+  branches: FullBranch[],
 ): Promise<Caregiver[]> {
   console.group('Seeding caregivers...');
 
@@ -41,7 +41,24 @@ export async function seedCaregivers(
 
     caregiver.time = CaregiverTime.DAY;
 
-    await prisma.caregiver.create({ data: caregiver as Caregiver });
+    const caregiverBranch = branches.find((b) => b.id === caregiver.branchId);
+
+    await prisma.caregiver.create({
+      data: {
+        ...(caregiver as Caregiver),
+        assignedSectors: caregiverBranch
+          ? {
+              createMany: {
+                data: caregiverBranch.sectors.map((sector) => ({
+                  sectorId: sector.id,
+                  createdById: caregiver.createdById,
+                  updatedById: caregiver.updatedById,
+                })),
+              },
+            }
+          : {},
+      },
+    });
     console.log(`Caregiver ${[caregiver.firstname, caregiver.lastname].join(' ')} created !`);
   }
 

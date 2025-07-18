@@ -30,6 +30,7 @@ import {
   FaUser,
   FaUsersCog,
 } from 'react-icons/fa';
+import { FaGear } from 'react-icons/fa6';
 
 interface ILink {
   link: string;
@@ -66,6 +67,13 @@ const connectedLinks: ILink[] = [
         label: 'Utilisateurs',
         type: 'link',
         icon: FaUser,
+        role: Role.SUPERADMIN,
+      },
+      {
+        link: '/admin/zone',
+        label: "Zone d'administration",
+        type: 'link',
+        icon: FaGear,
         role: Role.SUPERADMIN,
       },
     ],
