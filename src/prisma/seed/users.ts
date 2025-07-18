@@ -43,7 +43,7 @@ export async function seedUsers(prisma: PrismaClient): Promise<User[]> {
 
   await prisma.user.deleteMany();
 
-  if (process.env.NODE_ENV === 'production' || true) {
+  if (process.env.NODE_ENV === 'production') {
     if (process.env.BASE_SUPERADMIN_JSON) {
       const baseSuperadmin: User = JSON.parse(process.env.BASE_SUPERADMIN_JSON);
       if (!baseSuperadmin.email || !baseSuperadmin.name || !baseSuperadmin.password) {
