@@ -1,7 +1,8 @@
-import { Branch, PrismaClient, User } from '@/generated/client';
+import { PrismaClient, User } from '@/generated/client';
 import { branches, randomColor, toSlug } from '@/lib/utils';
+import { FullBranch } from '@/types/utils';
 
-export async function seedBranches(prisma: PrismaClient, users: User[]): Promise<Branch[]> {
+export async function seedBranches(prisma: PrismaClient, users: User[]): Promise<FullBranch[]> {
   console.group('Seeding branches...');
 
   await prisma.mission.deleteMany();

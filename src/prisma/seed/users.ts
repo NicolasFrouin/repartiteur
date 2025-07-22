@@ -39,6 +39,7 @@ export const users: NonRequired<User>[] = [
 ];
 
 export async function seedUsers(prisma: PrismaClient): Promise<User[]> {
+  return await prisma.user.findMany({ where: { role: Role.SUPERADMIN } });
   console.group('Seeding users...');
 
   await prisma.user.deleteMany();
